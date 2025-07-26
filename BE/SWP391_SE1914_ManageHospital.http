@@ -1,0 +1,4 @@
+@SWP391_SE1914_ManageHospital_HostAddress = http://localhost:5082
+
+GET {{SWP391_SE1914_ManageHospital_HostAddress}}/weatherforecast/
+Accept: application/json
