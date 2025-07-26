@@ -136,11 +136,11 @@ class AppointmentAPI {
             } : null;
             console.log('🔧 Selected service:', service);
 
-            // Lấy ngày giờ
+            // Lấy ngày
             const dateInput = document.querySelector('.flatpickrdate-appointment, .inline_flatpickr');
-            const selectedTime = sessionStorage.getItem('selectedTime');
+            const selectedShift = sessionStorage.getItem('selectedShift');
             console.log('📅 Date input value:', dateInput ? dateInput.value : 'none');
-            console.log('⏰ Selected time:', selectedTime);
+            console.log('⏰ Selected shift:', selectedShift);
             
             // Lấy thông tin bệnh nhân từ tab active
             const activeTab = document.querySelector('.tab-pane.active');
@@ -157,7 +157,7 @@ class AppointmentAPI {
                 doctor, 
                 service,
                 date: dateInput ? dateInput.value : null,
-                startTime: selectedTime,
+                shift: selectedShift,
                 patient,
                 note
             };
@@ -220,28 +220,16 @@ class AppointmentAPI {
         if (appointmentDate && appointmentDate.includes('T')) {
             appointmentDate = appointmentDate.split('T')[0];
         }
-        // Chuyển đổi giờ thành TimeSpan (HH:mm:ss)
-        let startTime = '07:30:00'; // default
-        if (data.startTime) {
-            const timeStr = data.startTime.trim();
-            if (/^\d{2}:\d{2}$/.test(timeStr)) {
-                startTime = `${timeStr}:00`;
-            } else if (/^\d{1,2}:\d{1,2}$/.test(timeStr)) {
-                // Trường hợp 7:5 => 07:05:00
-                const [h, m] = timeStr.split(':');
-                startTime = `${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
-            } else if (/^\d{4}$/.test(timeStr)) {
-                // Trường hợp 0730 => 07:30:00
-                startTime = `${timeStr.substring(0,2)}:${timeStr.substring(2,4)}:00`;
-            }
-        }
+        // Sử dụng trường shift từ appointmentData
+        let shift = data.shift || null;
+        
         // Log lại dữ liệu gửi đi để debug
         console.log('[DEBUG] Payload gửi lên backend:', {
             clinicId: data.clinic.id,
             doctorId: data.doctor.id,
             serviceId: data.service.id,
             appointmentDate,
-            startTime,
+            shift,
             note: data.note || '',
             patientInfo: data.patient
         });

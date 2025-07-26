@@ -187,7 +187,7 @@ class AppointmentConfirmationHandler {
                 doctor: selectedDoctor,
                 service: selectedService,
                 date: selectedDateTime.date,
-                startTime: selectedDateTime.startTime, // Đổi tên thành startTime
+                shift: selectedDateTime.shift,         // Chỉ dùng shift
                 rawDate: selectedDateTime.rawDate,
                 patient: patientData,
                 note: note
@@ -313,7 +313,8 @@ class AppointmentConfirmationHandler {
 
     getSelectedDateTime() {
         let formattedDate = sessionStorage.getItem('selectedDate') || '';
-        let time = sessionStorage.getItem('selectedTime') || '';
+        let shift = sessionStorage.getItem('selectedShift') || null;
+        
         // Nếu dùng custom calendar mà sessionStorage chưa có, lấy từ window.getCustomCalendarDate
         if (!formattedDate && typeof window.getCustomCalendarDate === 'function') {
             const customDate = window.getCustomCalendarDate();
@@ -324,9 +325,10 @@ class AppointmentConfirmationHandler {
                 formattedDate = `${d}/${m}/${y}`;
             }
         }
+        
         return {
             date: formattedDate,
-            startTime: time,
+            shift: shift,    // Chỉ dùng shift
             rawDate: formattedDate
         };
     }
@@ -432,12 +434,14 @@ class AppointmentConfirmationHandler {
             dateElement.textContent = this.appointmentData.date;
         }
         if (timeElement) {
-            let timeToShow = this.appointmentData.startTime;
-            if (!timeToShow) {
-                // Lấy từ sessionStorage nếu không có
-                timeToShow = sessionStorage.getItem('selectedTime') || '';
+            let timeToShow = 'Chưa chọn';
+            if (this.appointmentData.shift) {
+                if (this.appointmentData.shift === 'morning') {
+                    timeToShow = 'CA SÁNG (07:00 - 12:00)';
+                } else if (this.appointmentData.shift === 'afternoon') {
+                    timeToShow = 'CA CHIỀU (13:00 - 17:00)';
+                }
             }
-            if (!timeToShow) timeToShow = 'Chưa chọn';
             timeElement.textContent = timeToShow;
             console.log('[DEBUG] Render giờ ra DOM:', timeToShow, 'appointmentData:', this.appointmentData);
         }
@@ -482,6 +486,7 @@ class AppointmentConfirmationHandler {
 // Thêm hàm resetTimeSelection ở đầu class hoặc ngoài class
 function resetTimeSelection() {
     sessionStorage.removeItem('selectedTime');
+    sessionStorage.removeItem('selectedShift');
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
     // Nếu có nút Next, disable luôn
     const dateTab = document.querySelector('.appointment-tab-content.appointment-content-active');

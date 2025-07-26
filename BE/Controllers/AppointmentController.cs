@@ -10,6 +10,7 @@ using System.Security.Claims;
 using static SWP391_SE1914_ManageHospital.Ultility.Status;
 using SWP391_SE1914_ManageHospital.Models.DTO.RequestDTO.Appointment;
 
+
 namespace SWP391_SE1914_ManageHospital.Controllers;
 
 [Route("api/[controller]")]
@@ -20,13 +21,15 @@ public class AppointmentController : ControllerBase
     private readonly IDoctorService _doctorService;
     private readonly IServiceService _serviceService;
     private readonly ApplicationDBContext _context;
+    private readonly IEmailService _emailService;
 
-    public AppointmentController(IClinicService clinicService, IDoctorService doctorService, IServiceService serviceService, ApplicationDBContext context)
+    public AppointmentController(IClinicService clinicService, IDoctorService doctorService, IServiceService serviceService, ApplicationDBContext context, IEmailService emailService)
     {
         _clinicService = clinicService;
         _doctorService = doctorService;
         _serviceService = serviceService;
         _context = context;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -258,21 +261,10 @@ public class AppointmentController : ControllerBase
     [HttpGet("booked-time-slots")]
     public async Task<IActionResult> GetBookedTimeSlots([FromQuery] int doctorId, [FromQuery] string date)
     {
-        // Debug: Log the raw input first
-        Console.WriteLine($"=== GetBookedTimeSlots called ===");
-        Console.WriteLine($"Raw input - DoctorId: {doctorId}, Date string: '{date}'");
-        Console.WriteLine($"Date string length: {date?.Length}");
-        if (!string.IsNullOrEmpty(date))
-        {
-            Console.WriteLine($"Date string bytes: {string.Join(", ", date.Select(c => (int)c))}");
-        }
-
         try
         {
-            // Check if date is null or empty
             if (string.IsNullOrEmpty(date))
             {
-                Console.WriteLine("Date parameter is null or empty");
                 return BadRequest(new
                 {
                     success = false,
@@ -281,39 +273,9 @@ public class AppointmentController : ControllerBase
                 });
             }
 
-            // Try multiple date parsing approaches
-            DateTime parsedDate = DateTime.MinValue;
-            bool parseSuccess = false;
-
-            // Try parsing with different formats
-            string[] formats = { "yyyy-MM-dd", "dd/MM/yyyy", "MM/dd/yyyy", "yyyy/MM/dd", "dd-MM-yyyy", "MM-dd-yyyy" };
-            
-            Console.WriteLine($"Trying to parse date: '{date}'");
-            foreach (string format in formats)
+            // Parse date
+            if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
             {
-                Console.WriteLine($"Trying format: {format}");
-                if (DateTime.TryParseExact(date, format, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out parsedDate))
-                {
-                    Console.WriteLine($"Successfully parsed with format: {format}");
-                    parseSuccess = true;
-                    break;
-                }
-            }
-
-            // If specific formats failed, try general parsing
-            if (!parseSuccess)
-            {
-                Console.WriteLine("Trying general DateTime.TryParse");
-                if (DateTime.TryParse(date, out parsedDate))
-                {
-                    Console.WriteLine("Successfully parsed with general DateTime.TryParse");
-                    parseSuccess = true;
-                }
-            }
-
-            if (!parseSuccess)
-            {
-                Console.WriteLine($"Failed to parse date: '{date}'");
                 return BadRequest(new
                 {
                     success = false,
@@ -322,93 +284,60 @@ public class AppointmentController : ControllerBase
                 });
             }
 
-            // Debug log
-            Console.WriteLine($"DoctorId: {doctorId}, Date string: '{date}', Parsed date: {parsedDate:yyyy-MM-dd}");
-
-            // Lấy tất cả các time slot đã được đặt cho bác sĩ trong ngày cụ thể
-            Console.WriteLine($"Querying appointments for date: {parsedDate:yyyy-MM-dd}");
-            
-            // Debug: Kiểm tra tất cả appointments trong ngày
-            var allAppointmentsInDay = await _context.Appointments
-                .Where(a => a.AppointmentDate.Date == parsedDate.Date)
-                .ToListAsync();
-            Console.WriteLine($"Total appointments on {parsedDate:yyyy-MM-dd}: {allAppointmentsInDay.Count}");
-            
-            foreach (var apt in allAppointmentsInDay)
-            {
-                Console.WriteLine($"Appointment ID: {apt.Id}, Date: {apt.AppointmentDate:yyyy-MM-dd}, StartTime: {apt.StartTime}");
-            }
-            
-            // Debug: Kiểm tra Doctor_Appointments
-            var doctorAppointments = await _context.Doctor_Appointments
-                .Where(da => da.DoctorId == doctorId)
-                .ToListAsync();
-            Console.WriteLine($"Total doctor appointments for doctor {doctorId}: {doctorAppointments.Count}");
-            
-            foreach (var da in doctorAppointments)
-            {
-                Console.WriteLine($"Doctor_Appointment - DoctorId: {da.DoctorId}, AppointmentId: {da.AppointmentId}");
-            }
-            
-            // Lấy các time slots đã được đặt (chỉ lấy lịch hẹn chưa bị hủy)
-            var bookedSlots = await _context.Appointments
+            // Lấy các lịch hẹn đã được đặt cho bác sĩ trong ngày cụ thể (chỉ lấy lịch hẹn chưa bị hủy)
+            var bookedAppointments = await _context.Appointments
                 .Where(a => a.AppointmentDate.Date == parsedDate.Date
                     && a.Doctor_Appointments.Any(da => da.DoctorId == doctorId)
                     && a.Status != AppointmentStatus.Cancelled)
-                .Select(a => a.StartTime)
+                .Include(a => a.Patient)
                 .ToListAsync();
 
-            Console.WriteLine($"Found {bookedSlots.Count} booked slots");
-
-            // Tạo danh sách các time slot đã được đặt với format HH:mm
-            var bookedTimeSlots = new List<string>();
-            foreach (var slot in bookedSlots)
+            // Chuyển đổi thành anonymous objects để tránh lỗi DBNull
+            var bookedAppointmentsData = bookedAppointments.Select(a => new
             {
-                try
-                {
-                    if (slot != null)
-                    {
-                        // Format TimeSpan thành HH:mm
-                        var timeString = SafeTimeSpanToString(slot.Value);
-                        bookedTimeSlots.Add(timeString);
-                        Console.WriteLine($"Added time slot: {timeString}");
-                    }
-                }
-                catch (Exception timeEx)
-                {
-                    Console.WriteLine($"Error formatting time slot: {slot}, Error: {timeEx.Message}");
-                }
-            }
+                Id = a.Id,
+                Shift = a.Shift ?? "",
+                StartTime = a.StartTime,
+                Status = a.Status,
+                PatientName = a.Patient?.Name ?? "Unknown"
+            }).ToList();
 
-            // Debug log
-            Console.WriteLine($"Booked slots: {string.Join(", ", bookedTimeSlots)}");
-            Console.WriteLine($"=== GetBookedTimeSlots completed successfully ===");
+            // Nhóm theo ca và đếm số lượng
+            var morningCount = bookedAppointmentsData.Count(a => a.Shift == "morning");
+            var afternoonCount = bookedAppointmentsData.Count(a => a.Shift == "afternoon");
+
+            // Tạo danh sách chi tiết các lịch hẹn đã đặt
+            var bookedDetails = bookedAppointmentsData.Select(a => new
+            {
+                appointmentId = a.Id,
+                shift = a.Shift,
+                startTime = a.StartTime.HasValue ? SafeTimeSpanToString(a.StartTime.Value) : null,
+                status = GetStatusText(a.Status),
+                patientName = a.PatientName
+            }).ToList();
 
             return Ok(new
             {
                 success = true,
-                message = "Lấy danh sách slot đã đặt thành công",
-                data = bookedTimeSlots
+                message = "Lấy danh sách lịch hẹn đã đặt thành công",
+                data = new
+                {
+                    summary = new
+                    {
+                        morningCount = morningCount,
+                        afternoonCount = afternoonCount,
+                        totalCount = bookedAppointmentsData.Count
+                    },
+                    details = bookedDetails
+                }
             });
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"=== ERROR in GetBookedTimeSlots ===");
-            Console.WriteLine($"Error message: {ex.Message}");
-            Console.WriteLine($"Error type: {ex.GetType().Name}");
-            Console.WriteLine($"Stack trace: {ex.StackTrace}");
-            
-            // Return a more specific error message
-            string errorMessage = ex.Message;
-            if (ex.Message.Contains("Input string was not in a correct format"))
-            {
-                errorMessage = $"Lỗi định dạng ngày tháng: '{date}'. Vui lòng kiểm tra lại định dạng yyyy-MM-dd";
-            }
-            
             return BadRequest(new
             {
                 success = false,
-                message = errorMessage,
+                message = ex.Message,
                 data = (object)null
             });
         }
@@ -612,39 +541,55 @@ public class AppointmentController : ControllerBase
                 return BadRequest(new { success = false, message = "Ca làm việc không hợp lệ! Chỉ chấp nhận 'morning' hoặc 'afternoon'" });
             }
 
-            // Kiểm tra bác sĩ có làm việc trong ca này không
+            // Kiểm tra bác sĩ có làm việc trong ca này không (logic mới dựa trên shift)
             var doctorShift = await _context.Doctor_Shifts.FirstOrDefaultAsync(s => 
                 s.DoctorId == request.DoctorId && 
                 s.ShiftDate.Date == request.AppointmentDate.Date && 
-                s.ShiftType.ToLower() == request.Shift.ToLower() &&
-                s.StartTime <= start &&
-                s.EndTime > start
+                s.ShiftType.ToLower() == request.Shift.ToLower()
             );
+            
+            // Kiểm tra có yêu cầu nghỉ phép được duyệt không
+            var approvedShiftRequests = await _context.ShiftRequests
+                .Where(r => r.DoctorId == request.DoctorId && r.Status == "Approved")
+                .Select(r => r.ShiftId)
+                .ToListAsync();
+            
+            if (doctorShift != null && approvedShiftRequests.Contains(doctorShift.Id))
+            {
+                doctorShift = null; // Bác sĩ đã được duyệt nghỉ phép
+            }
+            
             if (doctorShift == null)
                 return BadRequest(new { success = false, message = $"Bác sĩ không làm việc trong ca {request.Shift} vào ngày này!" });
 
-            // Kiểm tra số lượng appointment trong ca
+            // Kiểm tra số lượng appointment trong ngày (tối đa 10 slots)
             int appointmentCount = await _context.Appointments
                 .Where(a => a.AppointmentDate.Date == request.AppointmentDate.Date
-                    && a.StartTime == start
-                    && (a.EndTime.HasValue && a.EndTime.Value == end)
-                    && a.Doctor_Appointments.Any(da => da.DoctorId == request.DoctorId))
+                    && a.Doctor_Appointments.Any(da => da.DoctorId == request.DoctorId)
+                    && (a.Status == AppointmentStatus.Scheduled
+                        || a.Status == AppointmentStatus.InProgress
+                        || a.Status == AppointmentStatus.Late))
                 .CountAsync();
-            if (appointmentCount >= 5)
+            
+            if (appointmentCount >= 10)
                 return BadRequest(new { success = false, message = "Ca làm việc này đã đầy! Vui lòng chọn ca khác." });
 
-            // Kiểm tra trùng lịch với StartTime cụ thể
-            var existingAppointment = await _context.Appointments
-                .Where(a => a.ClinicId == request.ClinicId
-                    && a.AppointmentDate == request.AppointmentDate.Date
-                    && a.StartTime == start)
-                .Join(_context.Doctor_Appointments,
-                    a => a.Id,
-                    da => da.AppointmentId,
-                    (a, da) => new { a, da })
-                .FirstOrDefaultAsync(x => x.da.DoctorId == request.DoctorId);
-            if (existingAppointment != null)
-                return BadRequest(new { success = false, message = "Khung giờ này đã có người đặt! Vui lòng chọn giờ khác." });
+            // Kiểm tra thời gian hiện tại (nếu là ngày hôm nay)
+            var currentTime = DateTime.Now;
+            var currentDate = currentTime.Date;
+            var currentTimeOfDay = currentTime.TimeOfDay;
+            
+            if (request.AppointmentDate.Date == currentDate)
+            {
+                if (request.Shift.ToLower() == "morning" && currentTimeOfDay >= new TimeSpan(12, 0, 0))
+                {
+                    return BadRequest(new { success = false, message = "Ca sáng đã kết thúc (sau 12:00). Vui lòng chọn ca chiều." });
+                }
+                if (request.Shift.ToLower() == "afternoon" && currentTimeOfDay >= new TimeSpan(17, 0, 0))
+                {
+                    return BadRequest(new { success = false, message = "Ca chiều đã kết thúc (sau 17:00). Vui lòng chọn ngày khác." });
+                }
+            }
 
             // Tạo mã lịch hẹn tự động
             string appointmentCode = await GenerateAppointmentCode();
@@ -670,6 +615,14 @@ public class AppointmentController : ControllerBase
             _context.Invoices.Add(invoice);
             await _context.SaveChangesAsync();
 
+            // Debug logging cho appointment creation
+            Console.WriteLine($"[DEBUG] Creating appointment with:");
+            Console.WriteLine($"[DEBUG] - ServiceId: {request.ServiceId}");
+            Console.WriteLine($"[DEBUG] - ClinicId: {request.ClinicId}");
+            Console.WriteLine($"[DEBUG] - DoctorId: {request.DoctorId}");
+            Console.WriteLine($"[DEBUG] - PatientId: {patient.Id}");
+            Console.WriteLine($"[DEBUG] - ReceptionId: null (should be null)");
+
             // 2. Tạo appointment với Id = invoice.Id
             var appointment = new SWP391_SE1914_ManageHospital.Models.Entities.Appointment
             {
@@ -685,15 +638,36 @@ public class AppointmentController : ControllerBase
                 isSend = false,
                 PatientId = patient.Id,
                 ClinicId = request.ClinicId,
-                ReceptionId = null,
-                ServiceId = request.ServiceId,
+                ReceptionId = null, // Đảm bảo là null
+                ServiceId = request.ServiceId, // Đảm bảo ServiceId được set đúng
                 CreateDate = DateTime.Now,
                 UpdateDate = DateTime.Now,
                 CreateBy = patient.Name ?? "Patient",
                 UpdateBy = patient.Name ?? "Patient"
             };
+
+            Console.WriteLine($"[DEBUG] Appointment object created:");
+            Console.WriteLine($"[DEBUG] - ServiceId: {appointment.ServiceId}");
+            Console.WriteLine($"[DEBUG] - ReceptionId: {appointment.ReceptionId}");
+            Console.WriteLine($"[DEBUG] - ClinicId: {appointment.ClinicId}");
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
+
+            // Debug logging sau khi save
+            Console.WriteLine($"[DEBUG] After saving to database:");
+            Console.WriteLine($"[DEBUG] - ServiceId: {appointment.ServiceId}");
+            Console.WriteLine($"[DEBUG] - ReceptionId: {appointment.ReceptionId}");
+            Console.WriteLine($"[DEBUG] - ClinicId: {appointment.ClinicId}");
+
+            // Reload từ database để kiểm tra
+            var savedAppointment = await _context.Appointments.FindAsync(appointment.Id);
+            if (savedAppointment != null)
+            {
+                Console.WriteLine($"[DEBUG] Reloaded from database:");
+                Console.WriteLine($"[DEBUG] - ServiceId: {savedAppointment.ServiceId}");
+                Console.WriteLine($"[DEBUG] - ReceptionId: {savedAppointment.ReceptionId}");
+                Console.WriteLine($"[DEBUG] - ClinicId: {savedAppointment.ClinicId}");
+            }
 
             // 3. Tạo medical_record với AppointmentId = appointment.Id (không gán Id = appointment.Id)
             /*
@@ -735,6 +709,36 @@ public class AppointmentController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Trả về thông tin lịch hẹn đã tạo (fix triệt để null và lỗi format)
+            // Gửi email xác nhận đặt lịch hẹn
+            try
+            {
+                // Lấy thông tin user từ database
+                var user = await _context.Users.FindAsync(userId);
+                var userEmail = user?.Email;
+                if (!string.IsNullOrEmpty(userEmail))
+                {
+                    await _emailService.SendAppointmentConfirmationEmailAsync(
+                        toEmail: userEmail,
+                        patientName: patient?.Name ?? "Bệnh nhân",
+                        appointmentCode: appointment?.Code ?? "",
+                        appointmentDate: appointment?.AppointmentDate ?? DateTime.Now,
+                        shift: appointment?.Shift ?? "",
+                        doctorName: doctor?.Name ?? "",
+                        clinicName: clinic?.Name ?? ""
+                    );
+                    Console.WriteLine($"[DEBUG] Email xác nhận đã được gửi đến: {userEmail}");
+                }
+                else
+                {
+                    Console.WriteLine("[DEBUG] Không tìm thấy email của user để gửi xác nhận");
+                }
+            }
+            catch (Exception emailEx)
+            {
+                // Log lỗi gửi email nhưng không làm fail toàn bộ request
+                Console.WriteLine($"[ERROR] Lỗi gửi email xác nhận: {emailEx.Message}");
+            }
+
             var responseData = new
             {
                 appointmentId = appointment?.Id ?? 0,
@@ -1053,45 +1057,55 @@ public class AppointmentController : ControllerBase
                 return BadRequest(new { success = false, message = "Ca làm việc không hợp lệ! Chỉ chấp nhận 'morning' hoặc 'afternoon'" });
             }
 
-            // Kiểm tra bác sĩ có làm việc trong ca này không
-            int dayOfWeek = (int)request.AppointmentDate.DayOfWeek;
-            if (dayOfWeek == 0) dayOfWeek = 7; // Sunday
-
+            // Kiểm tra bác sĩ có làm việc trong ca này không (logic mới dựa trên shift)
             var doctorShift = await _context.Doctor_Shifts.FirstOrDefaultAsync(s => 
                 s.DoctorId == request.DoctorId && 
                 s.ShiftDate.Date == request.AppointmentDate.Date && 
-                s.ShiftType.ToLower() == request.Shift.ToLower() &&
-                s.StartTime <= start &&
-                s.EndTime > start
+                s.ShiftType.ToLower() == request.Shift.ToLower()
             );
+            
+            // Kiểm tra có yêu cầu nghỉ phép được duyệt không
+            var approvedShiftRequests = await _context.ShiftRequests
+                .Where(r => r.DoctorId == request.DoctorId && r.Status == "Approved")
+                .Select(r => r.ShiftId)
+                .ToListAsync();
+            
+            if (doctorShift != null && approvedShiftRequests.Contains(doctorShift.Id))
+            {
+                doctorShift = null; // Bác sĩ đã được duyệt nghỉ phép
+            }
 
             if (doctorShift == null)
                 return BadRequest(new { success = false, message = $"Bác sĩ không làm việc trong ca {request.Shift} vào ngày này!" });
 
-            // Kiểm tra số lượng appointment trong ca
+            // Kiểm tra số lượng appointment trong ngày (tối đa 10 slots)
             int appointmentCount = await _context.Appointments
                 .Where(a => a.AppointmentDate.Date == request.AppointmentDate.Date
-                    && a.StartTime == start
-                    && (a.EndTime.HasValue && a.EndTime.Value == end)
-                    && a.Doctor_Appointments.Any(da => da.DoctorId == request.DoctorId))
+                    && a.Doctor_Appointments.Any(da => da.DoctorId == request.DoctorId)
+                    && (a.Status == AppointmentStatus.Scheduled
+                        || a.Status == AppointmentStatus.InProgress
+                        || a.Status == AppointmentStatus.Late))
                 .CountAsync();
 
-            if (appointmentCount >= 5)
+            if (appointmentCount >= 10)
                 return BadRequest(new { success = false, message = "Ca làm việc này đã đầy! Vui lòng chọn ca khác." });
 
-            // Kiểm tra trùng lịch với StartTime cụ thể  
-            var existingAppointment = await _context.Appointments
-                .Where(a => a.ClinicId == request.ClinicId
-                    && a.AppointmentDate == request.AppointmentDate.Date
-                    && a.StartTime == start)
-                .Join(_context.Doctor_Appointments,
-                    a => a.Id,
-                    da => da.AppointmentId,
-                    (a, da) => new { a, da })
-                .FirstOrDefaultAsync(x => x.da.DoctorId == request.DoctorId);
-
-            if (existingAppointment != null)
-                return BadRequest(new { success = false, message = "Khung giờ này đã có người đặt! Vui lòng chọn giờ khác." });
+            // Kiểm tra thời gian hiện tại (nếu là ngày hôm nay)
+            var currentTime = DateTime.Now;
+            var currentDate = currentTime.Date;
+            var currentTimeOfDay = currentTime.TimeOfDay;
+            
+            if (request.AppointmentDate.Date == currentDate)
+            {
+                if (request.Shift.ToLower() == "morning" && currentTimeOfDay >= new TimeSpan(12, 0, 0))
+                {
+                    return BadRequest(new { success = false, message = "Ca sáng đã kết thúc (sau 12:00). Vui lòng chọn ca chiều." });
+                }
+                if (request.Shift.ToLower() == "afternoon" && currentTimeOfDay >= new TimeSpan(17, 0, 0))
+                {
+                    return BadRequest(new { success = false, message = "Ca chiều đã kết thúc (sau 17:00). Vui lòng chọn ngày khác." });
+                }
+            }
 
             // Tạo mã lịch hẹn tự động
             string appointmentCode = await GenerateAppointmentCode();
@@ -1132,7 +1146,8 @@ public class AppointmentController : ControllerBase
                 isSend = false,
                 PatientId = patient.Id,
                 ClinicId = request.ClinicId,
-                ReceptionId = 1, // Mặc định
+                ReceptionId = null, // Để null
+                ServiceId = request.ServiceId, // Thêm ServiceId
                 CreateDate = DateTime.Now,
                 UpdateDate = DateTime.Now,
                 CreateBy = "TEST_USER",
@@ -1354,7 +1369,7 @@ public class AppointmentController : ControllerBase
     {
         try
         {
-            const int MAX_APPOINTMENTS_PER_DAY = 5;
+            const int MAX_APPOINTMENTS_PER_DAY = 20; // Đồng bộ với MAX_SLOTS_PER_DAY
             
             // Kiểm tra xem doctor có tồn tại không
             var doctor = await _context.Doctors.FindAsync(doctorId);
@@ -1402,11 +1417,54 @@ public class AppointmentController : ControllerBase
                 // Kiểm tra nếu ngày này không phải ngày trong quá khứ
                 if (workingDate >= today)
                 {
-                    // Đếm số lượng appointment đã đặt cho ngày này
-                    var appointmentCount = await _context.Doctor_Appointments
+                    // Đếm số lượng appointment đã đặt cho ngày này (chỉ đếm các trạng thái còn hiệu lực)
+                    var allAppointmentsForDay = await _context.Doctor_Appointments
                         .Where(da => da.DoctorId == doctorId &&
-                                    da.Appointment.AppointmentDate.Date == workingDate.Date)
-                        .CountAsync();
+                                    da.Appointment.AppointmentDate.Date == workingDate.Date &&
+                                    (da.Appointment.Status == AppointmentStatus.Scheduled
+                                     || da.Appointment.Status == AppointmentStatus.InProgress
+                                     || da.Appointment.Status == AppointmentStatus.Late))
+                        .Include(da => da.Appointment)
+                        .ToListAsync();
+
+                    // Đếm theo ca
+                    var morningCount = allAppointmentsForDay
+                        .Where(da => da.Appointment.Shift?.ToLower() == "morning")
+                        .Count();
+
+                    var afternoonCount = allAppointmentsForDay
+                        .Where(da => da.Appointment.Shift?.ToLower() == "afternoon")
+                        .Count();
+
+                    // Xử lý appointment có Shift null/empty (dữ liệu cũ)
+                    var nullShiftAppointments = allAppointmentsForDay
+                        .Where(da => string.IsNullOrEmpty(da.Appointment.Shift))
+                        .ToList();
+
+                    foreach (var da in nullShiftAppointments)
+                    {
+                        if (da.Appointment.StartTime.HasValue)
+                        {
+                            var hour = da.Appointment.StartTime.Value.Hours;
+                            if (hour < 12)
+                            {
+                                morningCount++;
+                            }
+                            else
+                            {
+                                afternoonCount++;
+                            }
+                        }
+                        else
+                        {
+                            // Mặc định là ca sáng nếu không có StartTime
+                            morningCount++;
+                        }
+                    }
+
+                    var appointmentCount = morningCount + afternoonCount;
+
+                    Console.WriteLine($"[DEBUG] Doctor {doctorId}, Date {workingDate:yyyy-MM-dd}: {appointmentCount}/{MAX_APPOINTMENTS_PER_DAY} appointments");
 
                     workingDaysResult.Add(new
                     {
@@ -1441,8 +1499,7 @@ public class AppointmentController : ControllerBase
     {
         try
         {
-            const int MAX_SLOTS_PER_DAY = 10;
-            var countableStatuses = new[] { "chưa tới", "đang khám", "đến muộn" };
+            const int MAX_SLOTS_PER_DAY = 10; // max ca
 
             if (!DateTime.TryParseExact(date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
             {
@@ -1454,60 +1511,178 @@ public class AppointmentController : ControllerBase
                 });
             }
 
+            // Lấy thời gian hiện tại
+            var currentTime = DateTime.Now;
+            var currentDate = currentTime.Date;
+            var currentTimeOfDay = currentTime.TimeOfDay;
+
+            // Debug logging
+            Console.WriteLine($"[DEBUG] Current time: {currentTime:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"[DEBUG] Parsed date: {parsedDate:yyyy-MM-dd}");
+            Console.WriteLine($"[DEBUG] Current time of day: {currentTimeOfDay:hh\\:mm}");
+
+            // Kiểm tra nếu là ngày hôm nay và đã quá giờ làm việc
+            bool isToday = parsedDate.Date == currentDate;
+            bool isPastMorningShift = isToday && currentTimeOfDay >= new TimeSpan(12, 0, 0); // Sau 12:00
+            bool isPastAfternoonShift = isToday && currentTimeOfDay >= new TimeSpan(17, 0, 0); // Sau 17:00
+
+            Console.WriteLine($"[DEBUG] Is today: {isToday}");
+            Console.WriteLine($"[DEBUG] Is past morning shift: {isPastMorningShift}");
+            Console.WriteLine($"[DEBUG] Is past afternoon shift: {isPastAfternoonShift}");
+
+            // Kiểm tra bác sĩ có làm việc trong ngày này không
             var doctorShifts = await _context.Doctor_Shifts
                 .Where(s => s.DoctorId == doctorId && s.ShiftDate.Date == parsedDate.Date)
                 .ToListAsync();
 
+            // Kiểm tra có yêu cầu nghỉ phép được duyệt không
             var approvedShiftRequests = await _context.ShiftRequests
                 .Where(r => r.DoctorId == doctorId && r.Status == "Approved")
                 .Select(r => r.ShiftId)
                 .ToListAsync();
             doctorShifts = doctorShifts.Where(s => !approvedShiftRequests.Contains(s.Id)).ToList();
 
-            // Ca sáng: 07:00 - 12:00
-            var morningStart = new TimeSpan(7, 0, 0);
-            var morningEnd = new TimeSpan(12, 0, 0);
-            // Ca chiều: 13:00 - 17:00
-            var afternoonStart = new TimeSpan(13, 0, 0);
-            var afternoonEnd = new TimeSpan(17, 0, 0);
+            // Debug: Lấy danh sách appointment để kiểm tra
+            var allAppointments = await _context.Appointments
+                .Where(a => a.AppointmentDate.Date == parsedDate.Date
+                    && a.Doctor_Appointments.Any(da => da.DoctorId == doctorId))
+                .Include(a => a.Doctor_Appointments)
+                .ToListAsync();
+
+            // Debug: Kiểm tra tất cả appointment trong ngày (không filter theo doctor)
+            var allAppointmentsInDay = await _context.Appointments
+                .Where(a => a.AppointmentDate.Date == parsedDate.Date)
+                .Include(a => a.Doctor_Appointments)
+                .ToListAsync();
+
+            Console.WriteLine($"[DEBUG] All appointments in day {parsedDate:yyyy-MM-dd}: {allAppointmentsInDay.Count}");
+            foreach (var apt in allAppointmentsInDay)
+            {
+                var doctorIds = apt.Doctor_Appointments.Select(da => da.DoctorId).ToList();
+                Console.WriteLine($"[DEBUG] All appointments - ID: {apt.Id}, Status: {apt.Status}, Shift: {apt.Shift}, DoctorIds: [{string.Join(", ", doctorIds)}]");
+            }
+
+            Console.WriteLine($"[DEBUG] Total appointments for doctor {doctorId} on {parsedDate:yyyy-MM-dd}: {allAppointments.Count}");
+            foreach (var apt in allAppointments)
+            {
+                Console.WriteLine($"[DEBUG] Appointment ID: {apt.Id}, Status: {apt.Status}, Shift: {apt.Shift}, Date: {apt.AppointmentDate:yyyy-MM-dd}, PatientId: {apt.PatientId}");
+            }
+
+            // Kiểm tra appointment theo status
+            var scheduledAppointments = allAppointments.Where(a => a.Status == AppointmentStatus.Scheduled).ToList();
+            var inProgressAppointments = allAppointments.Where(a => a.Status == AppointmentStatus.InProgress).ToList();
+            var lateAppointments = allAppointments.Where(a => a.Status == AppointmentStatus.Late).ToList();
+            var completedAppointments = allAppointments.Where(a => a.Status == AppointmentStatus.Completed).ToList();
+            var cancelledAppointments = allAppointments.Where(a => a.Status == AppointmentStatus.Cancelled).ToList();
+
+            Console.WriteLine($"[DEBUG] By status - Scheduled: {scheduledAppointments.Count}, InProgress: {inProgressAppointments.Count}, Late: {lateAppointments.Count}, Completed: {completedAppointments.Count}, Cancelled: {cancelledAppointments.Count}");
+
+            // Kiểm tra appointment theo shift
+            var morningAppts = allAppointments.Where(a => a.Shift?.ToLower() == "morning").ToList();
+            var afternoonAppts = allAppointments.Where(a => a.Shift?.ToLower() == "afternoon").ToList();
+            var nullShiftAppts = allAppointments.Where(a => string.IsNullOrEmpty(a.Shift)).ToList();
+
+            Console.WriteLine($"[DEBUG] By shift - Morning: {morningAppts.Count}, Afternoon: {afternoonAppts.Count}, Null/Empty: {nullShiftAppts.Count}");
+            foreach (var apt in nullShiftAppts)
+            {
+                Console.WriteLine($"[DEBUG] Null shift appointment - ID: {apt.Id}, Status: {apt.Status}");
+            }
 
             // Đếm số lịch hẹn đã đặt trong ngày (chỉ đếm các trạng thái còn hiệu lực)
-            var bookedSlotsCount = await _context.Appointments
-                .Where(a => a.AppointmentDate.Date == parsedDate.Date
-                    && a.Doctor_Appointments.Any(da => da.DoctorId == doctorId)
-                    && (a.Status == SWP391_SE1914_ManageHospital.Ultility.Status.AppointmentStatus.Scheduled
-                        || a.Status == SWP391_SE1914_ManageHospital.Ultility.Status.AppointmentStatus.InProgress
-                        || a.Status == SWP391_SE1914_ManageHospital.Ultility.Status.AppointmentStatus.Late))
-                .CountAsync();
+            var bookedSlotsCount = allAppointments
+                .Where(a => a.Status == AppointmentStatus.Scheduled
+                    || a.Status == AppointmentStatus.InProgress
+                    || a.Status == AppointmentStatus.Late)
+                .Count();
 
-            // Kiểm tra ca sáng có available không
-            bool morningAvailable = false;
-            if (doctorShifts.Any(s => s.ShiftType.ToLower() == "morning"))
+            Console.WriteLine($"[DEBUG] Booked slots count (active statuses): {bookedSlotsCount}");
+
+            // Debug: Kiểm tra từng appointment theo shift và status
+            Console.WriteLine($"[DEBUG] Checking appointments by shift and status:");
+            foreach (var apt in allAppointments)
             {
-                morningAvailable = bookedSlotsCount < MAX_SLOTS_PER_DAY;
+                var isActiveStatus = apt.Status == AppointmentStatus.Scheduled
+                    || apt.Status == AppointmentStatus.InProgress
+                    || apt.Status == AppointmentStatus.Late;
+                
+                Console.WriteLine($"[DEBUG] Appointment {apt.Id}: Shift='{apt.Shift}', Status={apt.Status}, IsActive={isActiveStatus}");
             }
 
-            // Kiểm tra ca chiều có available không  
-            bool afternoonAvailable = false;
-            if (doctorShifts.Any(s => s.ShiftType.ToLower() == "afternoon"))
-            {
-                afternoonAvailable = bookedSlotsCount < MAX_SLOTS_PER_DAY;
-            }
+            // Đếm riêng cho từng ca
+            var morningAppointments = allAppointments
+                .Where(a => a.Shift?.ToLower() == "morning" && 
+                           (a.Status == AppointmentStatus.Scheduled
+                            || a.Status == AppointmentStatus.InProgress
+                            || a.Status == AppointmentStatus.Late))
+                .Count();
 
-            // Nếu không có ca nào làm việc cả ngày
-            if (!morningAvailable && !afternoonAvailable)
+            var afternoonAppointments = allAppointments
+                .Where(a => a.Shift?.ToLower() == "afternoon" && 
+                           (a.Status == AppointmentStatus.Scheduled
+                            || a.Status == AppointmentStatus.InProgress
+                            || a.Status == AppointmentStatus.Late))
+                .Count();
+
+            // Xử lý appointment có Shift null/empty (có thể là dữ liệu cũ)
+            var nullShiftActiveAppointments = allAppointments
+                .Where(a => string.IsNullOrEmpty(a.Shift) && 
+                           (a.Status == AppointmentStatus.Scheduled
+                            || a.Status == AppointmentStatus.InProgress
+                            || a.Status == AppointmentStatus.Late))
+                .Count();
+
+            Console.WriteLine($"[DEBUG] Null shift active appointments: {nullShiftActiveAppointments}");
+
+            // Nếu có appointment với Shift null, phân bổ theo logic cũ (dựa vào StartTime)
+            if (nullShiftActiveAppointments > 0)
             {
-                return Ok(new
+                var nullShiftActiveAppts = allAppointments
+                    .Where(a => string.IsNullOrEmpty(a.Shift) && 
+                               (a.Status == AppointmentStatus.Scheduled
+                                || a.Status == AppointmentStatus.InProgress
+                                || a.Status == AppointmentStatus.Late))
+                    .ToList();
+
+                foreach (var apt in nullShiftActiveAppts)
                 {
-                    success = true,
-                    message = "Bác sĩ không làm việc vào ngày này",
-                    data = new
+                    if (apt.StartTime.HasValue)
                     {
-                        morning = new { available = false, reason = "Bác sĩ không làm việc hoặc đã xin nghỉ ca sáng" },
-                        afternoon = new { available = false, reason = "Bác sĩ không làm việc hoặc đã xin nghỉ ca chiều" }
+                        var hour = apt.StartTime.Value.Hours;
+                        if (hour < 12)
+                        {
+                            morningAppointments++;
+                            Console.WriteLine($"[DEBUG] Null shift appointment {apt.Id} assigned to morning (hour: {hour})");
+                        }
+                        else
+                        {
+                            afternoonAppointments++;
+                            Console.WriteLine($"[DEBUG] Null shift appointment {apt.Id} assigned to afternoon (hour: {hour})");
+                        }
                     }
-                });
+                    else
+                    {
+                        // Nếu không có StartTime, mặc định là ca sáng
+                        morningAppointments++;
+                        Console.WriteLine($"[DEBUG] Null shift appointment {apt.Id} with no StartTime assigned to morning (default)");
+                    }
+                }
             }
+
+            Console.WriteLine($"[DEBUG] Morning appointments: {morningAppointments}");
+            Console.WriteLine($"[DEBUG] Afternoon appointments: {afternoonAppointments}");
+
+            // Kiểm tra ca sáng
+            bool morningWorks = doctorShifts.Any(s => s.ShiftType.ToLower() == "morning");
+            bool morningAvailable = morningWorks && morningAppointments < MAX_SLOTS_PER_DAY && !isPastMorningShift;
+            int morningCount = morningWorks ? morningAppointments : 0;
+
+            // Kiểm tra ca chiều
+            bool afternoonWorks = doctorShifts.Any(s => s.ShiftType.ToLower() == "afternoon");
+            bool afternoonAvailable = afternoonWorks && afternoonAppointments < MAX_SLOTS_PER_DAY && !isPastAfternoonShift;
+            int afternoonCount = afternoonWorks ? afternoonAppointments : 0;
+
+            Console.WriteLine($"[DEBUG] Morning works: {morningWorks}, morning appointments: {morningAppointments}, morning available: {morningAvailable}");
+            Console.WriteLine($"[DEBUG] Afternoon works: {afternoonWorks}, afternoon appointments: {afternoonAppointments}, afternoon available: {afternoonAvailable}");
 
             return Ok(new
             {
@@ -1515,8 +1690,22 @@ public class AppointmentController : ControllerBase
                 message = "OK",
                 data = new
                 {
-                    morning = new { available = morningAvailable, reason = "Bác sĩ không làm việc ca sáng" },
-                    afternoon = new { available = afternoonAvailable, reason = "Bác sĩ không làm việc ca chiều" }
+                    morning = new
+                    {
+                        available = morningAvailable,
+                        count = morningCount,
+                        maxSlots = MAX_SLOTS_PER_DAY,
+                        doctorWorks = morningWorks,
+                        isPastTime = isPastMorningShift
+                    },
+                    afternoon = new
+                    {
+                        available = afternoonAvailable,
+                        count = afternoonCount,
+                        maxSlots = MAX_SLOTS_PER_DAY,
+                        doctorWorks = afternoonWorks,
+                        isPastTime = isPastAfternoonShift
+                    }
                 }
             });
         }
@@ -2385,6 +2574,46 @@ public class AppointmentController : ControllerBase
         {
             // Log lỗi nhưng không làm gián đoạn quá trình cập nhật appointment
             Console.WriteLine($"Lỗi khi tạo medical record: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// API test gửi email nhắc nhở lịch hẹn
+    /// </summary>
+    [HttpPost("test-reminder-email")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> TestReminderEmail([FromBody] TestReminderEmailRequest request)
+    {
+        try
+        {
+            if (request == null)
+                return BadRequest(new { success = false, message = "Dữ liệu yêu cầu không hợp lệ!" });
+
+            await _emailService.SendAppointmentReminderEmailAsync(
+                toEmail: request.Email,
+                patientName: request.PatientName,
+                appointmentCode: request.AppointmentCode,
+                appointmentDate: request.AppointmentDate,
+                shift: request.Shift,
+                doctorName: request.DoctorName,
+                clinicName: request.ClinicName
+            );
+
+            return Ok(new 
+            { 
+                success = true, 
+                message = "Email nhắc nhở đã được gửi thành công!" 
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new 
+            { 
+                success = false, 
+                message = "Đã xảy ra lỗi khi gửi email nhắc nhở!", 
+                error = ex.Message
+            });
         }
     }
 } 

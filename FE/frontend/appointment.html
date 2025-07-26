@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-      <title>Kivicare | Quản lý phòng khám & bệnh nhân</title>
+      <title>G-Care Clinic | Quản lý phòng khám & bệnh nhân</title>
       <!-- Config Options -->
-      <meta name="setting_options" content='{&quot;saveLocal&quot;:&quot;sessionStorage&quot;,&quot;storeKey&quot;:&quot;huisetting&quot;,&quot;setting&quot;:{&quot;app_name&quot;:{&quot;value&quot;:&quot;Kivicare&quot;}}}'>
+              <meta name="setting_options" content='{&quot;saveLocal&quot;:&quot;sessionStorage&quot;,&quot;storeKey&quot;:&quot;huisetting&quot;,&quot;setting&quot;:{&quot;app_name&quot;:{&quot;value&quot;:&quot;G-Care Clinic&quot;}}}'>
       <!-- Google Font Api KEY-->
       <meta name="google_font_api" content="AIzaSyBG58yNdAjc20_8jAvLNSVi9E4Xhwjau_k">
       <!-- Favicon -->
@@ -54,6 +54,23 @@
           background-color: #2563eb !important;
           color: #fff !important;
           border: 1px solid #2563eb;
+        }
+        
+        /* Cursor styles for shift buttons */
+        .time-btn.shift-btn {
+          cursor: pointer;
+        }
+        
+        .time-btn.shift-btn:disabled {
+          cursor: not-allowed !important;
+        }
+        
+        .time-btn.shift-btn.disabled {
+          cursor: not-allowed !important;
+        }
+        
+        .time-btn.shift-btn[style*="cursor: wait"] {
+          cursor: wait !important;
         }
         
         /* Ensure dropdown shows properly */
@@ -382,9 +399,9 @@
                 </div>
                 <div class="mb-5 pb-5 border-bottom">
                    <h4 class="mb-3">Liên hệ:</h4>
-                   <p>4517, Washington Ave, Manchester, Kentucky, England 524163.</p>
-                   <p>kivicare@example.com</p>
-                   <p>Điện thoại : (480) 555-0103</p>
+                   <p>FPT University Hòa Lạc</p>
+                                       <p>nguyenducgiangqp@gmail.com</p>
+                   <p>Điện thoại : 0862502458</p>
                 </div>
                 <div class="mb-5">
                    <h4 class="mb-3">Theo dõi chúng tôi:</h4>
@@ -425,7 +442,7 @@
                    </ul>
                 </div>
                 <p class="pt-3 mb-0 border-top">©
-                   <script>document.write(new Date().getFullYear())</script> KiviCare, Tất cả
+                                       <script>document.write(new Date().getFullYear())</script> G-Care Clinic, Tất cả
                    quyền được bảo lưu.</p>
              </div>
           </div>        <!--bread-crumb-->
@@ -764,6 +781,7 @@
                                                 <div class="d-flex align-items-center justify-content-center">
                                                    <div class="text-center">
                                                       <div class="fw-bold fs-6">CA SÁNG (07:00 - 12:00)</div>
+                                                      <div class="text-muted small mt-1 slot-count" id="morning-slot-count">Đã đặt: 0/10</div>
                                        </div>
                                        </div>
                                              </button>
@@ -773,6 +791,7 @@
                                                 <div class="d-flex align-items-center justify-content-center">
                                                    <div class="text-center">
                                                       <div class="fw-bold fs-6">CA CHIỀU (13:00 - 17:00)</div>
+                                                      <div class="text-muted small mt-1 slot-count" id="afternoon-slot-count">Đã đặt: 0/10</div>
                                                    </div>
                                                 </div>
                                              </button>
@@ -1183,28 +1202,6 @@
                                     <div class="d-flex align-items-center justify-content-center gap-3 flex-wrap mt-5">
                                        <a href="./appointment.html" class="bg-primary iq-button text-capitalize">
                                           <span class="iq-btn-text-holder position-relative">Đặt thêm lịch hẹn</span>
-                                          <span class="iq-btn-icon-holder">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"
-                                                viewBox="0 0 8 8" fill="none">
-                                                <path
-                                                   d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z"
-                                                   fill="currentColor"></path>
-                                             </svg>
-                                          </span>
-                                       </a>
-                                       <a href="javascript:void(0);" class="iq-button text-capitalize">
-                                          <span class="iq-btn-text-holder position-relative">In chi tiết</span>
-                                          <span class="iq-btn-icon-holder">
-                                             <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"
-                                                viewBox="0 0 8 8" fill="none">
-                                                <path
-                                                   d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z"
-                                                   fill="currentColor"></path>
-                                             </svg>
-                                          </span>
-                                       </a>
-                                       <a href="javascript:void(0);" class="bg-primary iq-button text-capitalize">
-                                          <span class="iq-btn-text-holder position-relative">Thêm vào lịch</span>
                                           <span class="iq-btn-icon-holder">
                                              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"
                                                 viewBox="0 0 8 8" fill="none">
@@ -1878,7 +1875,7 @@
             const dayData = workingDaysData.find(d => d.day === day);
             const isAvailable = dayData ? dayData.isAvailable : false;
             const appointmentCount = dayData ? dayData.appointmentCount : 0;
-            const maxSlots = dayData ? dayData.maxSlots : 5;
+            const maxSlots = dayData ? dayData.maxSlots : 10; // Đồng bộ với backend
             
             let dayStyle = 'height:36px;line-height:36px;border-radius:50%;transition:all 0.2s ease;border:2px solid transparent;';
             
@@ -1931,7 +1928,8 @@
           const availableDays = workingDaysData.filter(d => d.isAvailable).length;
           const totalDays = workingDaysData.length;
           const totalSlots = workingDaysData.reduce((sum, d) => sum + d.appointmentCount, 0);
-          const maxSlots = totalDays * 5;
+          // Tính tổng slot tối đa từ workingDaysData
+          const maxSlots = workingDaysData.reduce((sum, d) => sum + (d.maxSlots || 10), 0);
           html += `
             <div style="margin-top:12px;padding:8px;background:#f0fdf4;border-radius:8px;border-left:4px solid #22c55e;text-align:center;">
               <small style="color:#166534;font-weight:500;">📊 ${availableDays}/${totalDays} ngày còn slot | ${totalSlots}/${maxSlots} slot đã đặt</small>

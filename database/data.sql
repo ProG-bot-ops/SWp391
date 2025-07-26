@@ -102,9 +102,9 @@ SELECT 'All data cleared successfully!' as message;
 
 -- Insert sample clinics
 INSERT INTO clinics (Id, Status, Type, Name, Code, Address, Email, ImageUrl, CreateDate, UpdateDate, CreateBy, UpdateBy) VALUES
-(1, 0, 1, 'Phòng khám Đa khoa Miracle', 'CL001', '123 Đường Nguyễn Huệ, Quận 1, TP.HCM', 'miracle_clinic@kivicare.com', '/assets/images/pages/clinic-2.webp', NOW(), NOW(), 'System', 'System'),
+(1, 0, 1, 'Phòng khám Đa khoa Miracle', 'CL001', '123 Đường Nguyễn Huệ, Quận 1, TP.HCM', 'miracle_clinic@gcare.com', '/assets/images/pages/clinic-2.webp', NOW(), NOW(), 'System', 'System'),
 (2, 0, 1, 'Phòng khám Đa khoa Valley', 'CL002', '456 Đường Võ Văn Tần, Quận 3, TP.HCM', 'valley_clinic@yopmail.com', '/assets/images/pages/clinic-1.webp', NOW(), NOW(), 'System', 'System'),
-(3, 0, 2, 'Phòng khám Chuyên khoa Tim mạch', 'CL003', '789 Đường Lê Lợi, Quận 1, TP.HCM', 'cardio_clinic@kivicare.com', '/assets/images/pages/clinic-3.webp', NOW(), NOW(), 'System', 'System');
+(3, 0, 2, 'Phòng khám Chuyên khoa Tim mạch', 'CL003', '789 Đường Lê Lợi, Quận 1, TP.HCM', 'cardio_clinic@gcare.com', '/assets/images/pages/clinic-3.webp', NOW(), NOW(), 'System', 'System');
 
 -- Insert sample departments for Clinic 1 (Miracle)
 INSERT INTO departments (Id, Description, TotalAmountOfPeople, Status, ClinicId, Name, Code, CreateDate, UpdateDate, CreateBy, UpdateBy) VALUES

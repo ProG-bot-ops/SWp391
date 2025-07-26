@@ -2,6 +2,7 @@
 
 public interface IEmailService
 {
-    Task SendResetPasswordEmailAsync(string toEmail, string resetToken, string userType);
-    Task SendAppointmentReminderEmailAsync(string toEmail, string Name, DateTime startTime);
+            Task SendResetPasswordEmailAsync(string toEmail, string resetToken, string userType);
+        Task SendAppointmentConfirmationEmailAsync(string toEmail, string patientName, string appointmentCode, DateTime appointmentDate, string shift, string doctorName, string clinicName);
+        Task SendAppointmentReminderEmailAsync(string toEmail, string patientName, string appointmentCode, DateTime appointmentDate, string shift, string doctorName, string clinicName);
 }

@@ -65,9 +65,12 @@ public class ApplicationDBContext : DbContext
             entity.Property(a => a.UpdateDate).IsRequired();
             entity.Property(a => a.UpdateBy).IsRequired().HasMaxLength(100);
             entity.Property(a => a.AppointmentDate).IsRequired();
-            entity.Property(a => a.StartTime).IsRequired();
+            entity.Property(a => a.StartTime).IsRequired(false); // Sửa thành nullable
             entity.Property(a => a.EndTime).IsRequired(false);
             entity.Property(a => a.Note).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Shift).HasMaxLength(20); // Thêm mapping cho Shift
+            entity.Property(a => a.ServiceId).IsRequired(false); // Thêm mapping cho ServiceId
+            entity.Property(a => a.ReceptionId).IsRequired(false); // Thêm mapping cho ReceptionId
 
 
             entity.Property(emp => emp.Status).IsRequired()
@@ -101,6 +104,10 @@ public class ApplicationDBContext : DbContext
             entity.HasOne(p => p.Reception)
                 .WithMany(cv => cv.Appointments)
                 .HasForeignKey(cus => cus.ReceptionId).OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(p => p.Service)
+                .WithMany()
+                .HasForeignKey(cus => cus.ServiceId).OnDelete(DeleteBehavior.SetNull);
 
 
         });
