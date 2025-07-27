@@ -38,6 +38,7 @@ public class ApplicationDBContext : DbContext
     public DbSet<PrescriptionDetail> PrescriptionDetails { get; set; }
     public DbSet<Reception> Receptions { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<SWP391_SE1914_ManageHospital.Models.Entities.Service> Services { get; set; }
     public DbSet<Supply> Supplies { get; set; }
     public DbSet<Supply_Inventory> Supply_Inventories { get; set; }
     public DbSet<User> Users { get; set; }

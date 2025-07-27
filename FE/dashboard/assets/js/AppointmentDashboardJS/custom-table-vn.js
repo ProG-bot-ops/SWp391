@@ -13,8 +13,8 @@
             'Họ và tên bệnh nhân',
             'Tên bác sĩ',
             'Phòng khám',
-            'Ngày & Giờ',
-            'Lý do',
+            'Ngày',
+            'Ca',
             'Trạng thái',
             'Hành động'
         ];

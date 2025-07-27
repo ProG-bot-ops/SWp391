@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Columns</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Columns</h1>
+    
+    <div class="debug-section">
+        <h3>Kiểm tra số cột trong bảng</h3>
+        <button onclick="checkColumns()">Check Columns</button>
+        <div id="columns-result" class="result"></div>
+    </div>
+
+    <div class="debug-section">
+        <h3>Kiểm tra header của từng tab</h3>
+        <button onclick="checkHeaders()">Check Headers</button>
+        <div id="headers-result" class="result"></div>
+    </div>
+
+    <script>
+        function checkColumns() {
+            const result = document.getElementById('columns-result');
+            let output = '';
+            
+            // Kiểm tra tất cả các bảng
+            const tables = document.querySelectorAll('table');
+            tables.forEach((table, index) => {
+                const thead = table.querySelector('thead');
+                if (thead) {
+                    const headers = thead.querySelectorAll('th');
+                    output += `<h4>Bảng ${index + 1}: ${headers.length} cột</h4>`;
+                    output += '<ul>';
+                    headers.forEach((header, i) => {
+                        output += `<li>Cột ${i + 1}: "${header.textContent.trim()}"</li>`;
+                    });
+                    output += '</ul>';
+                }
+            });
+            
+            result.innerHTML = output || 'Không tìm thấy bảng nào';
+        }
+
+        function checkHeaders() {
+            const result = document.getElementById('headers-result');
+            let output = '';
+            
+            // Kiểm tra từng tab
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach((pane, index) => {
+                const table = pane.querySelector('table');
+                if (table) {
+                    const thead = table.querySelector('thead');
+                    if (thead) {
+                        const headers = thead.querySelectorAll('th');
+                        output += `<h4>Tab ${index + 1} (${pane.id}): ${headers.length} cột</h4>`;
+                        output += '<ul>';
+                        headers.forEach((header, i) => {
+                            output += `<li>Cột ${i + 1}: "${header.textContent.trim()}"</li>`;
+                        });
+                        output += '</ul>';
+                    }
+                }
+            });
+            
+            result.innerHTML = output || 'Không tìm thấy tab nào';
+        }
+
+        // Tự động chạy khi load trang
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkColumns();
+                checkHeaders();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

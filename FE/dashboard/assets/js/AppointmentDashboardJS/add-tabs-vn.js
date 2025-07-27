@@ -38,8 +38,8 @@
                             <th>Họ và tên bệnh nhân</th>
                             <th>Tên bác sĩ</th>
                             <th>Phòng khám</th>
-                            <th>Ngày & Giờ</th>
-                            <th>Lý do</th>
+                            <th>Ngày</th>
+                            <th>Ca</th>
                             <th>Trạng thái</th>
                             <th>Hành động</th>
                         </tr>

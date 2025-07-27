@@ -149,7 +149,7 @@ function loadAppointments(filter = 'upcoming') {
                 </div>
                 <div class="border-start ps-3 ms-3 flex-grow-1">
                     <h5 class="mb-1">${appointment.patient}</h5>
-                    <h6 class="mb-1">Lý do: <span class="text-body fw-normal">${appointment.reason}</span></h6>
+                    <h6 class="mb-1">Ca: <span class="text-body fw-normal">${appointment.reason}</span></h6>
                     <small class="${statusClass}">${statusText}</small>
                 </div>
                 <div>

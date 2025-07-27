@@ -1,60 +1,125 @@
 // search-patient.js
+// Xử lý chức năng tìm kiếm bệnh nhân
 (function() {
-    // Đợi DOM sẵn sàng
-    document.addEventListener('DOMContentLoaded', function() {
-        // 1. Thêm thanh tìm kiếm cạnh nút Add Appointment
-        var addBtn = document.querySelector('a.btn.btn-primary[data-bs-toggle="offcanvas"][href="#offcanvasAppointmentAdd"]');
-        if (addBtn && !document.getElementById('search-patient-form')) {
-            var form = document.createElement('form');
-            form.className = 'd-inline-block ms-2';
-            form.id = 'search-patient-form';
-            form.style.maxWidth = '250px';
-            form.innerHTML = `
-                <div class="input-group">
-                    <input type="text" class="form-control" id="search-patient-input" placeholder="Tìm kiếm bệnh nhân...">
-                    <button class="btn btn-outline-secondary" type="submit" tabindex="-1">
-                        <svg width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85zm-5.242 1.106a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/>
-                        </svg>
-                    </button>
+    const API_BASE_URL = 'https://localhost:7097';
+
+    // Search patients
+    window.searchPatients = function() {
+        const searchTerm = document.getElementById('searchPatientInput').value.trim();
+        const searchResults = document.getElementById('searchResults');
+        
+        if (!searchTerm) {
+            searchResults.innerHTML = '';
+            return;
+        }
+
+        // Show loading
+        searchResults.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Đang tìm kiếm...</div>';
+
+        fetch(`${API_BASE_URL}/api/appointment/patient/search?term=${encodeURIComponent(searchTerm)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    let html = '<div class="list-group">';
+                    data.forEach(patient => {
+                        html += `
+                            <div class="list-group-item list-group-item-action" onclick="selectPatient(${patient.id}, '${patient.name}', '${patient.email || ''}', '${patient.phone || ''}')">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${patient.name}</h6>
+                                    <small>ID: ${patient.id}</small>
+                                </div>
+                                <p class="mb-1">Email: ${patient.email || 'N/A'}</p>
+                                <small>Phone: ${patient.phone || 'N/A'}</small>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    searchResults.innerHTML = html;
+                } else {
+                    searchResults.innerHTML = '<div class="text-center text-muted">Không tìm thấy bệnh nhân</div>';
+                }
+            })
+            .catch(err => {
+                console.error('Error searching patients:', err);
+                searchResults.innerHTML = '<div class="text-center text-danger">Lỗi khi tìm kiếm</div>';
+            });
+    };
+
+    // Select patient from search results
+    window.selectPatient = function(patientId, patientName, patientEmail, patientPhone) {
+        // Fill the form fields
+        const nameInput = document.getElementById('patient_name');
+        const emailInput = document.getElementById('patient_email');
+        const phoneInput = document.getElementById('patient_phone');
+        
+        if (nameInput) nameInput.value = patientName;
+        if (emailInput) emailInput.value = patientEmail;
+        if (phoneInput) phoneInput.value = patientPhone;
+        
+        // Clear search results
+        document.getElementById('searchResults').innerHTML = '';
+        document.getElementById('searchPatientInput').value = '';
+        
+        // Show success message
+        showToast('success', `Đã chọn bệnh nhân: ${patientName}`);
+    };
+
+    // Show toast notification
+    function showToast(type, message) {
+        // Create toast element
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                 </div>
-            `;
-            addBtn.parentNode.insertBefore(form, addBtn.nextSibling);
+            </div>
+        `;
+        
+        // Add toast to container
+        let toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
         }
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        // Show toast
+        const toastElement = toastContainer.lastElementChild;
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+        
+        // Remove toast after it's hidden
+        toastElement.addEventListener('hidden.bs.toast', function() {
+            toastElement.remove();
+        });
+    }
 
-        // 2. Lọc bảng bệnh nhân khi tìm kiếm
-        function filterPatientTable(keyword) {
-            // Lọc tất cả các bảng trong tab (upcoming, request, ...)
-            var tables = document.querySelectorAll('.tab-pane.active table, .tab-pane.show table');
-            tables.forEach(function(table) {
-                var rows = table.querySelectorAll('tbody tr');
-                rows.forEach(function(row) {
-                    var text = row.innerText.toLowerCase();
-                    if (text.includes(keyword)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+    // Initialize search functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchPatientInput');
+        if (searchInput) {
+            // Add event listener for input
+            searchInput.addEventListener('input', function() {
+                // Debounce search
+                clearTimeout(this.searchTimeout);
+                this.searchTimeout = setTimeout(() => {
+                    searchPatients();
+                }, 300);
             });
-        }
-
-        // 3. Sự kiện submit và input
-        var formEl = document.getElementById('search-patient-form');
-        if (formEl) {
-            formEl.addEventListener('submit', function(e) {
-                e.preventDefault();
-                var keyword = document.getElementById('search-patient-input').value.trim().toLowerCase();
-                filterPatientTable(keyword);
+            
+            // Add event listener for enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchPatients();
+                }
             });
-            // Lọc realtime khi nhập
-            var inputEl = document.getElementById('search-patient-input');
-            if (inputEl) {
-                inputEl.addEventListener('input', function() {
-                    var keyword = this.value.trim().toLowerCase();
-                    filterPatientTable(keyword);
-                });
-            }
         }
     });
 })(); 
