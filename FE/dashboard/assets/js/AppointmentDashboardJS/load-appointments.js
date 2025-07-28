@@ -12,6 +12,8 @@
                 return 'Đã lên lịch';
             case 'inprogress':
                 return 'Đang khám';
+            case 'late':
+                return 'Đến muộn';
             case 'completed':
                 return 'Đã hoàn thành';
             case 'cancelled':
@@ -54,9 +56,17 @@
         tbody.innerHTML = '';
         
         // Lọc theo trạng thái
-        const filtered = allAppointments.filter(item => 
-            item.status && item.status.toLowerCase() === status
-        );
+        let filtered;
+        if (status === 'scheduled') {
+            // Tab "Sắp tới" bao gồm cả "Đã lên lịch" và "Đến muộn"
+            filtered = allAppointments.filter(item => 
+                item.status && (item.status.toLowerCase() === 'scheduled' || item.status.toLowerCase() === 'late')
+            );
+        } else {
+            filtered = allAppointments.filter(item => 
+                item.status && item.status.toLowerCase() === status
+            );
+        }
         
         if (filtered.length === 0) {
             var tr = document.createElement('tr');
@@ -118,10 +128,24 @@
             
             // Tạo action buttons dựa trên trạng thái
             let actionButtons = '';
-            if (status === 'scheduled') {
-                // Tab "Sắp tới" - có nút Sửa và Xóa
+            
+            // Nút "Xem chi tiết" cho tất cả trạng thái
+            const viewDetailButton = `
+                <a class="d-inline-block pe-2" href="#" onclick="viewAppointmentDetail(${item.id})" title="Xem chi tiết">
+                    <span class="text-primary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 3.5C5.5 3.5 3.5 5.5 3.5 8C3.5 10.5 5.5 12.5 8 12.5C10.5 12.5 12.5 10.5 12.5 8C12.5 5.5 10.5 3.5 8 3.5ZM8 11C6.625 11 5.5 9.875 5.5 8.375C5.5 6.875 6.625 5.75 8 5.75C9.375 5.75 10.5 6.875 10.5 8.375C10.5 9.875 9.375 11 8 11Z" fill="currentColor"/>
+                            <path d="M8 6.75C7.25 6.75 6.75 7.25 6.75 8C6.75 8.75 7.25 9.25 8 9.25C8.75 9.25 9.25 8.75 9.25 8C9.25 7.25 8.75 6.75 8 6.75Z" fill="currentColor"/>
+                        </svg>
+                    </span>
+                </a>
+            `;
+            
+            if (status === 'scheduled' || status === 'late') {
+                // Tab "Sắp tới" (bao gồm cả "Đến muộn") - có nút Xem chi tiết, Sửa và Hủy
                 actionButtons = `
-                    <a class="d-inline-block pe-2" data-bs-toggle="offcanvas" href="#offcanvasAppointmentEdit" role="button" aria-controls="offcanvasAppointmentEdit" onclick="loadAppointmentForEdit(${item.id})">
+                    ${viewDetailButton}
+                    <a class="d-inline-block pe-2" data-bs-toggle="offcanvas" href="#offcanvasAppointmentEdit" role="button" aria-controls="offcanvasAppointmentEdit" onclick="loadAppointmentForEdit(${item.id})" title="Sửa">
                         <span class="text-success">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M9.31055 14.3321H14.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -130,7 +154,7 @@
                             </svg>
                         </span>
                     </a>
-                    <a href="#" class="d-inline-block ps-2 delete-btn" onclick="deleteAppointment(${item.id})">
+                    <a href="#" class="d-inline-block ps-2" onclick="cancelAppointment(${item.id})" title="Hủy">
                         <span class="text-danger">
                             <svg width="15" height="16" viewBox="0 0 15 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -141,21 +165,24 @@
                     </a>
                 `;
             } else if (status === 'inprogress') {
-                // Tab "Đang khám" - có nút Hoàn thành và Hủy
+                // Tab "Đang khám" - có nút Xem chi tiết, Hoàn thành, Tạm dừng và Hủy
                 actionButtons = `
+                    ${viewDetailButton}
                     <button type="button" class="badge rounded-0 bg-success-subtle fw-500 px-3 py-2 border-0 me-2" onclick="completeAppointment(${item.id})">Hoàn thành</button>
                     <button type="button" class="badge rounded-0 bg-warning-subtle fw-500 px-3 py-2 border-0 me-2" onclick="pauseAppointment(${item.id})">Tạm dừng</button>
                     <button type="button" class="badge rounded-0 bg-danger-subtle fw-500 px-3 py-2 border-0" onclick="cancelAppointment(${item.id})">Hủy</button>
                 `;
             } else if (status === 'completed') {
-                // Tab "Hoàn thành" - có nút Accept và Cancel
+                // Tab "Hoàn thành" - có nút Xem chi tiết, Accept và Cancel
                 actionButtons = `
+                    ${viewDetailButton}
                     <button type="button" class="badge rounded-0 bg-success-subtle fw-500 px-3 py-2 border-0 me-2" onclick="acceptAppointment(${item.id})">Accept</button>
                     <button type="button" class="badge rounded-0 bg-danger-subtle fw-500 px-3 py-2 border-0" onclick="cancelAppointment(${item.id})">Cancel</button>
                 `;
             } else if (status === 'cancelled') {
-                // Tab "Đã hủy" - chỉ hiển thị thông tin
+                // Tab "Đã hủy" - chỉ có nút Xem chi tiết
                 actionButtons = `
+                    ${viewDetailButton}
                     <span class="badge bg-secondary">Đã hủy</span>
                 `;
             }
@@ -377,6 +404,91 @@
                 alert('Lỗi khi tạm dừng lịch hẹn');
             });
         }
+    };
+
+    // View appointment detail
+    window.viewAppointmentDetail = function(appointmentId) {
+        fetch(`${API_BASE_URL}/api/appointment/detail/${appointmentId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.id) {
+                    // Tạo modal hiển thị chi tiết lịch hẹn
+                    const detailHtml = `
+                        <div class="modal fade" id="appointmentDetailModal" tabindex="-1" aria-labelledby="appointmentDetailModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="appointmentDetailModalLabel">Chi tiết lịch hẹn</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Thông tin bệnh nhân</h6>
+                                                <p><strong>Tên:</strong> ${data.name || 'N/A'}</p>
+                                                <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+                                                <p><strong>Loại:</strong> ${data.type || 'N/A'}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Thông tin lịch hẹn</h6>
+                                                <p><strong>Ngày:</strong> ${data.date ? new Date(data.date).toLocaleDateString('vi-VN') : 'N/A'}</p>
+                                                <p><strong>Giờ:</strong> ${data.time || 'N/A'}</p>
+                                                <p><strong>Ca:</strong> ${getShiftText(data.shift)}</p>
+                                                <p><strong>Trạng thái:</strong> ${getStatusText(data.status)}</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Thông tin bác sĩ</h6>
+                                                <p><strong>Tên bác sĩ:</strong> ${data.doctorName || 'N/A'}</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold">Thông tin phòng khám</h6>
+                                                <p><strong>Phòng khám:</strong> ${data.clinic || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                        ${data.note ? `
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Ghi chú</h6>
+                                                <p>${data.note}</p>
+                                            </div>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Xóa modal cũ nếu có
+                    const oldModal = document.getElementById('appointmentDetailModal');
+                    if (oldModal) {
+                        oldModal.remove();
+                    }
+                    
+                    // Thêm modal mới vào body
+                    document.body.insertAdjacentHTML('beforeend', detailHtml);
+                    
+                    // Hiển thị modal
+                    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
+                    modal.show();
+                    
+                    // Xóa modal khi đóng
+                    document.getElementById('appointmentDetailModal').addEventListener('hidden.bs.modal', function() {
+                        this.remove();
+                    });
+                } else {
+                    alert('Không tìm thấy thông tin lịch hẹn');
+                }
+            })
+            .catch(err => {
+                console.error('Error loading appointment detail:', err);
+                alert('Lỗi khi tải thông tin chi tiết lịch hẹn');
+            });
     };
 
     // Load all appointments
