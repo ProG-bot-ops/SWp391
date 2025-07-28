@@ -8,7 +8,7 @@
         public int MedicineId { get; set; }
         public virtual Medicine Medicine { get; set; } = null!;
 
-        public string BatchNumber { get; set; } = null!;
+        public string? BatchNumber { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
 
@@ -20,6 +20,5 @@
         public virtual Unit Unit { get; set; } = null!;
 
         public virtual ICollection<Medicine_Inventory> Inventories { get; set; } = new List<Medicine_Inventory>();
-
     }
 }

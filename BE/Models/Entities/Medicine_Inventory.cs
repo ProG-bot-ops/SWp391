@@ -6,7 +6,7 @@ public class Medicine_Inventory
 {
     public int Id { get; set; }
     public int Quantity { get; set; }
-    public string BatchNumber { get; set; } = null!;
+    public string? BatchNumber { get; set; }
     public decimal UnitPrice { get; set; }
     public DateTime ImportDate { get; set; }
     public DateTime ExpiryDate { get; set; }
@@ -16,6 +16,4 @@ public class Medicine_Inventory
 
     public int ImportDetailId { get; set; }     
     public virtual MedicineImportDetail ImportDetail { get; set; } = null!;
-
-
 }

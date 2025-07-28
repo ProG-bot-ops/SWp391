@@ -6,10 +6,10 @@ public class Doctor : BaseEntity
 {
     public Gender Gender { get; set; }
     public DateTime Dob { get; set; }
-    public string CCCD { get; set; }
-    public string Phone { get; set; }
+    public string? CCCD { get; set; }
+    public string? Phone { get; set; }
     public string? ImageURL { get; set; }
-    public string LicenseNumber { get; set; }
+    public string? LicenseNumber { get; set; }
     public float YearOfExperience { get; set; }
     public float WorkingHours { get; set; }
     public DoctorStatus Status { get; set; }
@@ -25,6 +25,4 @@ public class Doctor : BaseEntity
     public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
 
     public virtual ICollection<Doctor_Shift> Doctor_Shifts { get; set; } = new List<Doctor_Shift>();
-
-
 }

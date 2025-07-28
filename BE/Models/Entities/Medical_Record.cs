@@ -5,8 +5,8 @@ namespace SWP391_SE1914_ManageHospital.Models.Entities;
 public class Medical_Record : BaseEntity
 {
     public MedicalRecordStatus Status { get; set; }
-    public string Diagnosis { get; set; }
-    public string TestResults { get; set; }
+    public string? Diagnosis { get; set; }
+    public string? TestResults { get; set; }
     public string? Notes { get; set; }
     public int AppointmentId { get; set; }
     public int PatientId { get; set; }

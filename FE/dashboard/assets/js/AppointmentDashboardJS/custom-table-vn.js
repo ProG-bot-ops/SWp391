@@ -6,7 +6,7 @@
     function updateTable() {
         // Xác định các tab
         const tabPaneList = document.querySelectorAll('.tab-pane');
-        const statusList = ['Chờ khám', 'Đã khám', 'Đã hủy'];
+        const statusList = ['Chờ khám', 'Đã hoàn thành', 'Đã hủy'];
         // Format chuẩn header
         const headerFormat = [
             'STT',
@@ -44,7 +44,7 @@
                 normalizeTableHeader(table);
             }
         }
-        // Tab Hoàn thành
+        // Tab Đã hoàn thành
         if (tabPaneList[1]) {
             const table = tabPaneList[1].querySelector('table');
             if (table) {

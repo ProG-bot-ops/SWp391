@@ -164,6 +164,9 @@ builder.Services.AddQuartz(q =>
 });
 // Đăng ký Hosted Service cho Quartz
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+// Đăng ký AppointmentAutoCancelService
+builder.Services.AddHostedService<AppointmentAutoCancelService>();
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
 {

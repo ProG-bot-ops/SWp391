@@ -3,7 +3,7 @@
 public class Feedback
 {
     public int Id { get; set; }
-    public string Content { get; set; }
+    public string? Content { get; set; }
     public DateTime CreateDate { get; set; }
     public int PatientId { get; set; }
     public int? DoctorId { get; set; }
@@ -11,5 +11,4 @@ public class Feedback
     public virtual Patient Patient { get; set; }
     public virtual Doctor Doctor { get; set; }
     public virtual Appointment Appointment { get; set; }
-    
 }

@@ -6,10 +6,14 @@ public class AppointmentUpdateRequest
 {
     public int Id { get; set; }
     public string? PatientName { get; set; }
+    public string? PatientPhone { get; set; }
     public string? PatientEmail { get; set; }
-    public string? Date { get; set; }
-    public string? Time { get; set; }
-    public string? Reason { get; set; }
-    public string? PatientType { get; set; }
+    public string? AppointmentDate { get; set; }
+    public string? StartTime { get; set; }
+    public string? Shift { get; set; }
+    public string? Status { get; set; }
+    public int? ClinicId { get; set; }
+    public int? DoctorId { get; set; }
+    public int? ServiceId { get; set; }
     public string? Note { get; set; }
 } 

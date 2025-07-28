@@ -177,7 +177,7 @@ function loadRecentPatients() {
         const statusClass = patient.status === 'completed' ? 'bg-success-subtle text-success' : 
                           patient.status === 'in-progress' ? 'bg-warning-subtle text-warning' : 
                           'bg-info-subtle text-info';
-        const statusText = patient.status === 'completed' ? 'Hoàn thành' : 
+        const statusText = patient.status === 'completed' ? 'Đã hoàn thành' : 
                           patient.status === 'in-progress' ? 'Đang khám' : 
                           'Chờ khám';
         tableBody.innerHTML += `

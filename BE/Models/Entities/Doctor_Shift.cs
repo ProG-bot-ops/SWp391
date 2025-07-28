@@ -7,7 +7,7 @@
         public virtual Doctor Doctor { get; set; } = null!;
 
         public DateTime ShiftDate { get; set; }
-        public string ShiftType { get; set; } = null!;  // "Morning" or "Afternoon"
+        public string? ShiftType { get; set; }  // "Morning" or "Afternoon"
 
         public TimeSpan StartTime { get; set; }              
         public TimeSpan EndTime { get; set; }               

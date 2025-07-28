@@ -1,549 +1,1305 @@
 // load-appointments.js
+// Script chính để load và hiển thị dữ liệu cuộc hẹn từ database
 (function() {
-    let allAppointments = [];
-    const API_BASE_URL = 'https://localhost:7097';
+    'use strict';
 
-    // Function chuyển đổi status sang tiếng Việt
-    function getStatusText(status) {
-        if (!status) return 'N/A';
-        
-        switch (status.toLowerCase()) {
-            case 'scheduled':
-                return 'Đã lên lịch';
-            case 'inprogress':
-                return 'Đang khám';
-            case 'late':
-                return 'Đến muộn';
-            case 'completed':
-                return 'Đã hoàn thành';
-            case 'cancelled':
-                return 'Đã hủy';
-            case 'pending':
-                return 'Chờ xác nhận';
-            default:
-                return status;
+    // Cấu hình
+    const CONFIG = {
+        refreshInterval: 30000, // 30 giây
+        maxRetries: 3
+    };
+
+    // Trạng thái ứng dụng
+    let appState = {
+        appointments: [],
+        isLoading: false,
+        lastUpdate: null,
+        retryCount: 0
+    };
+
+    // Utility functions
+    const Utils = {
+        // Format ngày tháng
+        formatDate: function(dateString) {
+            if (!dateString) return 'N/A';
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            } catch (e) {
+                return 'N/A';
+            }
+        },
+
+        // Lấy text trạng thái
+        getStatusText: function(status) {
+            const statusMap = {
+                'PENDING': 'Chờ khám',
+                'COMPLETED': 'Đã hoàn thành',
+                'CANCELLED': 'Đã hủy',
+                'IN_PROGRESS': 'Đang khám'
+            };
+            return statusMap[status] || status || 'N/A';
+        },
+
+        // Lấy text ca khám
+        getShiftText: function(shift) {
+            const shiftMap = {
+                'MORNING': 'Ca sáng',
+                'AFTERNOON': 'Ca chiều',
+                'EVENING': 'Ca tối',
+                'morning': 'Ca sáng',
+                'afternoon': 'Ca chiều',
+                'evening': 'Ca tối',
+                'Morning': 'Ca sáng',
+                'Afternoon': 'Ca chiều',
+                'Evening': 'Ca tối'
+            };
+            return shiftMap[shift] || shift || 'N/A';
+        },
+
+        // Tạo badge trạng thái
+        createStatusBadge: function(status) {
+            const text = this.getStatusText(status);
+            let className = 'badge bg-secondary'; // Mặc định
+            
+            // Xác định màu sắc dựa trên status (không phân biệt hoa thường)
+            const statusLower = (status || '').toLowerCase();
+            
+            if (statusLower.includes('đã lên lịch') || statusLower.includes('scheduled') || statusLower.includes('pending')) {
+                className = 'badge bg-primary'; // Xanh dương
+            } else if (statusLower.includes('đang khám') || statusLower.includes('in progress') || statusLower.includes('inprogress')) {
+                className = 'badge bg-info'; // Xanh nhạt
+            } else if (statusLower.includes('đã hoàn thành') || statusLower.includes('completed')) {
+                className = 'badge bg-success'; // Xanh lá
+            } else if (statusLower.includes('đã hủy') || statusLower.includes('cancelled')) {
+                className = 'badge bg-danger'; // Đỏ
+            } else if (statusLower.includes('đến muộn') || statusLower.includes('late')) {
+                className = 'badge bg-warning'; // Vàng
+            }
+            
+            return `<span class="${className}">${text}</span>`;
+        },
+
+        // Tạo nút hành động
+                    createActionButtons: function(appointmentId, status, appointment) {
+            let buttons = '';
+            
+                // Nút xem chi tiết (luôn hiển thị)
+                buttons += `<button class="btn btn-sm btn-outline-primary me-1" onclick="viewAppointmentDetail('${appointmentId}')" title="Xem chi tiết">
+                    <i class="fas fa-eye"></i>
+                </button>`;
+
+                // Nút chỉnh sửa (không hiển thị cho appointments đã hoàn thành, đã hủy và đang khám)
+                if (status !== 'đã hoàn thành' && status !== 'Đã hoàn thành' && status !== 'DA_HOAN_THANH' && 
+                    status !== 'đã hủy' && status !== 'Đã hủy' && status !== 'DA_HUY' &&
+                    status !== 'đang khám' && status !== 'Đang khám' && status !== 'DANG_KHAM') {
+                    buttons += `<button class="btn btn-sm btn-outline-warning me-1" onclick="editAppointment('${appointmentId}')" title="Chỉnh sửa">
+                        <i class="fas fa-edit"></i>
+                    </button>`;
+                }
+
+                // Nút chuyển vào đang khám (chỉ hiển thị cho appointments "đã lên lịch")
+                if (status === 'đã lên lịch' || status === 'Đã lên lịch' || status === 'DA_LEN_LICH') {
+                    buttons += `<button class="btn btn-sm btn-outline-info me-1" onclick="startAppointment('${appointmentId}')" title="Bắt đầu khám">
+                        <i class="fas fa-play"></i>
+                    </button>`;
+                }
+
+                // Nút hoàn thành (chỉ hiển thị cho appointments "đang khám")
+                if (status === 'đang khám' || status === 'Đang khám' || status === 'DANG_KHAM') {
+                    buttons += `<button class="btn btn-sm btn-outline-success me-1" onclick="completeAppointment('${appointmentId}')" title="Hoàn thành khám">
+                        <i class="fas fa-check"></i>
+                    </button>`;
+                }
+      
+                // Nút hủy (chỉ hiển thị cho appointments chưa hoàn thành và chưa hủy)
+                if (status !== 'đã hoàn thành' && status !== 'Đã hoàn thành' && status !== 'DA_HOAN_THANH' && 
+                    status !== 'đã hủy' && status !== 'Đã hủy' && status !== 'DA_HUY') {
+                    buttons += `<button class="btn btn-sm btn-outline-danger" onclick="cancelAppointment('${appointmentId}')" title="Hủy lịch hẹn">
+                        <i class="fas fa-times"></i>
+                    </button>`;
+                }
+
+                // Nút khôi phục (chỉ hiển thị cho appointments đã hủy và trong ca làm việc)
+                if (status === 'đã hủy' || status === 'Đã hủy' || status === 'DA_HUY') {
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    const appointmentDate = new Date(appointment.appointmentDate);
+                    
+                    // Chỉ hiển thị nút restore nếu lịch hẹn trong ngày hôm nay
+                    if (appointmentDate.toDateString() === today.toDateString()) {
+                        // Xác định ca làm việc của lịch hẹn
+                        let shiftStart, shiftEnd, shiftTypeVN;
+                        if (appointment.startTime) {
+                            const hour = new Date(`2000-01-01T${appointment.startTime}`).getHours();
+                            if (hour < 12) {
+                                // Ca sáng: 07:00 - 12:00
+                                shiftStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 0, 0);
+                                shiftEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+                                shiftTypeVN = "Ca sáng";
+                            } else {
+                                // Ca chiều: 13:00 - 17:00
+                                shiftStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 13, 0, 0);
+                                shiftEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 17, 0, 0);
+                                shiftTypeVN = "Ca chiều";
+                            }
+                        } else {
+                            // Mặc định ca sáng nếu không có thời gian
+                            shiftStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 7, 0, 0);
+                            shiftEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0, 0);
+                            shiftTypeVN = "Ca sáng";
+                        }
+                        
+                        // Chỉ hiển thị nút restore nếu trong ca làm việc
+                        if (now >= shiftStart && now <= shiftEnd) {
+                            buttons += `<button class="btn btn-sm btn-outline-secondary" onclick="restoreAppointment('${appointmentId}')" title="Khôi phục cuộc hẹn">
+                                <i class="fas fa-undo"></i>
+                            </button>`;
+                        }
+                    }
+                }
+
+                return `<div class="d-flex justify-content-center align-items-center">${buttons}</div>`;
+        },
+
+        // Hiển thị loading
+        showLoading: function(container) {
+            if (!container) return;
+            
+            container.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Đang tải dữ liệu...</p>
+                    </td>
+                </tr>
+            `;
+        },
+
+        // Hiển thị lỗi
+        showError: function(container, message) {
+            if (!container) return;
+            
+            container.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <div class="text-danger mb-3">
+                            <i class="fas fa-exclamation-triangle fa-3x"></i>
+                        </div>
+                        <h5 class="text-danger">Lỗi tải dữ liệu</h5>
+                        <p class="text-muted">${message}</p>
+                        <button class="btn btn-primary" onclick="AppointmentLoader.retryLoad()">
+                            <i class="fas fa-redo"></i> Thử lại
+                        </button>
+                    </td>
+                </tr>
+            `;
+        },
+
+        // Hiển thị thông báo không có dữ liệu
+        showNoData: function(container, message = 'Không có cuộc hẹn nào') {
+            if (!container) return;
+            
+            container.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-5">
+                        <div class="text-muted mb-3">
+                            <i class="fas fa-calendar-times fa-3x"></i>
+                        </div>
+                        <h5 class="text-muted">${message}</h5>
+                    </td>
+                </tr>
+            `;
+        }
+    };
+
+    // Class chính để load và hiển thị cuộc hẹn
+    class AppointmentLoader {
+        constructor() {
+            this.init();
+        }
+
+        init() {
+            this.setupEventListeners();
+            this.loadAppointments();
+            this.startAutoRefresh();
+        }
+
+        // Thiết lập event listeners
+        setupEventListeners() {
+            // Lắng nghe sự kiện filter
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('[data-filter]')) {
+                    const filter = e.target.getAttribute('data-filter');
+                    console.log('🔍 Filter clicked:', filter);
+                    this.setFilter(filter);
+                }
+            });
+
+            // Lắng nghe sự kiện dropdown filter
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('[data-value]')) {
+                    const filter = e.target.getAttribute('data-value');
+                    console.log('🔍 Dropdown filter clicked:', filter);
+                    this.setFilter(filter);
+                }
+            });
+
+            // Lắng nghe sự kiện refresh
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('[data-refresh]')) {
+                    console.log('🔄 Refresh clicked');
+                    this.loadAppointments();
+                }
+            });
+
+            // Lắng nghe sự kiện từ appointment-counter.js
+            window.addEventListener('appointmentFilterChanged', (e) => {
+                console.log('🔍 Filter event received:', e.detail);
+                if (e.detail && e.detail.filterType) {
+                    this.setFilter(e.detail.filterType);
+                }
+            });
+        }
+
+        // Load dữ liệu cuộc hẹn từ API
+        async loadAppointments() {
+            if (appState.isLoading) return;
+
+            appState.isLoading = true;
+            this.showLoadingInAllTabs();
+
+            try {
+                console.log('🔄 Đang tải dữ liệu cuộc hẹn...');
+                console.log('🔗 API URL:', window.AppointmentAPI.appointments.list);
+                
+                const response = await fetch(window.AppointmentAPI.appointments.list, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('📡 API Response Status:', response.status);
+                console.log('📡 API Response OK:', response.ok);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('✅ Dữ liệu cuộc hẹn:', data);
+                console.log('📊 Data Type:', typeof data);
+                console.log('📊 Is Array:', Array.isArray(data));
+                console.log('📊 Data Keys:', Object.keys(data));
+
+                // Xử lý response format
+                let appointments = [];
+                if (data && data.success && data.data) {
+                    appointments = data.data;
+                    console.log('✅ Sử dụng format success.data');
+                } else if (Array.isArray(data)) {
+                    appointments = data;
+                    console.log('✅ Sử dụng format array trực tiếp');
+                } else if (data && Array.isArray(data.data)) {
+                    appointments = data.data;
+                    console.log('✅ Sử dụng format data.data array');
+                } else {
+                    console.log('⚠️ Format dữ liệu không nhận diện được, thử parse lại');
+                    appointments = Array.isArray(data) ? data : [];
+                }
+
+                console.log('📊 Appointments count:', appointments.length);
+                if (appointments.length > 0) {
+                    console.log('📊 First appointment:', appointments[0]);
+                    console.log('📊 First appointment keys:', Object.keys(appointments[0]));
+                }
+
+                appState.appointments = appointments;
+                appState.lastUpdate = new Date();
+                appState.retryCount = 0;
+
+                console.log('📊 AppState after update:', appState);
+                console.log('📊 Appointments in appState:', appState.appointments.length);
+
+                // Thông báo cho appointment-counter.js về dữ liệu mới
+                if (typeof window.loadAndCalculateAppointments === 'function') {
+                    console.log('🔄 Thông báo cho appointment-counter.js về dữ liệu mới');
+                    window.loadAndCalculateAppointments();
+                }
+
+                // Kiểm tra DOM trước khi update
+                console.log('🔍 Checking DOM before update...');
+                const tabPanes = document.querySelectorAll('.tab-pane');
+                console.log('📊 Found tab panes:', tabPanes.length);
+                tabPanes.forEach((pane, index) => {
+                    console.log(`📊 Tab ${index} - pane id:`, pane.id);
+                    const table = pane.querySelector('table');
+                    console.log(`📊 Tab ${index} - table found:`, !!table);
+                    if (table) {
+                        const tbody = table.querySelector('tbody');
+                        console.log(`📊 Tab ${index} - tbody found:`, !!tbody);
+                        if (tbody) {
+                            console.log(`📊 Tab ${index} - tbody children:`, tbody.children.length);
+                        }
+                    }
+                });
+
+                this.updateAllTables();
+                this.updateCounter();
+                this.hideLoading();
+
+                console.log(`✅ Đã tải ${appointments.length} cuộc hẹn thành công`);
+
+            } catch (error) {
+                console.error('❌ Lỗi tải dữ liệu:', error);
+                appState.retryCount++;
+                
+                if (appState.retryCount < CONFIG.maxRetries) {
+                    console.log(`🔄 Thử lại lần ${appState.retryCount}...`);
+                    setTimeout(() => this.loadAppointments(), 2000);
+                } else {
+                    this.showErrorInAllTabs(error.message);
+                }
+            } finally {
+                appState.isLoading = false;
+            }
+        }
+
+        // Hiển thị loading trong tất cả tabs
+        showLoadingInAllTabs() {
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => {
+                const table = pane.querySelector('table');
+                if (table) {
+                    const tbody = table.querySelector('tbody');
+                    if (tbody) {
+                        Utils.showLoading(tbody);
+                    }
+                }
+            });
+        }
+
+        // Hiển thị lỗi trong tất cả tabs
+        showErrorInAllTabs(message) {
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(pane => {
+                const table = pane.querySelector('table');
+                if (table) {
+                    const tbody = table.querySelector('tbody');
+                    if (tbody) {
+                        Utils.showError(tbody, message);
+                    }
+                }
+            });
+        }
+
+        // Ẩn loading
+        hideLoading() {
+            // Loading sẽ được thay thế bởi dữ liệu thực
+        }
+
+        // Cập nhật tất cả bảng
+        updateAllTables() {
+            console.log('🔄 Updating all tables...');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            console.log('📊 Found tab panes:', tabPanes.length);
+            
+            tabPanes.forEach((pane, index) => {
+                console.log(`📊 Tab ${index} - pane:`, pane);
+                console.log(`📊 Tab ${index} - pane id:`, pane.id);
+                const table = pane.querySelector('table');
+                console.log(`📊 Tab ${index} - table:`, table);
+                if (table) {
+                    const tbody = table.querySelector('tbody');
+                    console.log(`📊 Tab ${index} - tbody:`, tbody);
+                    this.updateTable(table, index);
+                } else {
+                    console.warn(`⚠️ No table found in tab ${index}`);
+                }
+            });
+        }
+
+        // Cập nhật bảng cụ thể
+        updateTable(table, tabIndex) {
+            console.log(`🔄 Updating table for tab ${tabIndex}...`);
+            const tbody = table.querySelector('tbody');
+            if (!tbody) {
+                console.warn(`⚠️ No tbody found in table for tab ${tabIndex}`);
+                return;
+            }
+
+            // Lọc dữ liệu theo tab
+            let filteredAppointments = this.filterAppointmentsByTab(appState.appointments, tabIndex);
+            console.log(`📊 Filtered appointments for tab ${tabIndex}:`, filteredAppointments.length);
+            
+                               if (filteredAppointments.length === 0) {
+                       const messages = [
+                           'Không có cuộc hẹn sắp tới',
+                            'Không có cuộc hẹn đang khám',
+                           'Không có cuộc hẹn đã hoàn thành',
+                           'Không có cuộc hẹn đã hủy'
+                       ];
+                       Utils.showNoData(tbody, messages[tabIndex] || 'Không có dữ liệu');
+                       console.log(`📊 Showing no data message for tab ${tabIndex}`);
+                       return;
+                   }
+
+            // Tạo HTML cho bảng
+            const tableHTML = this.generateTableRows(filteredAppointments);
+            console.log(`📊 Generated HTML for tab ${tabIndex}:`, tableHTML);
+            console.log(`📊 HTML length:`, tableHTML.length);
+            console.log(`📊 Tbody before update:`, tbody.innerHTML.length, 'characters');
+            tbody.innerHTML = tableHTML;
+            console.log(`📊 Tbody after update:`, tbody.innerHTML.length, 'characters');
+            console.log(`✅ Updated table for tab ${tabIndex} with ${filteredAppointments.length} appointments`);
+        }
+
+                           // Lọc cuộc hẹn theo tab
+                   filterAppointmentsByTab(appointments, tabIndex) {
+                       console.log(`🔍 Filtering appointments for tab ${tabIndex}...`);
+                       console.log('📊 Total appointments:', appointments.length);
+                       
+                       const today = new Date();
+                       today.setHours(0, 0, 0, 0);
+                       console.log('📅 Today:', today);
+
+                       // Áp dụng filter toàn cục trước
+                       let globalFiltered = appointments;
+                       if (appState.currentFilter && appState.currentFilter !== 'all') {
+                           globalFiltered = this.applyGlobalFilter(appointments, appState.currentFilter);
+                           console.log(`🔍 After global filter (${appState.currentFilter}):`, globalFiltered.length);
+                       }
+
+                       const filtered = globalFiltered.filter(appointment => {
+                           console.log('📊 Processing appointment:', appointment);
+                console.log('📊 Appointment status:', appointment.status);
+                console.log('📊 Appointment date:', appointment.date);
+                           
+                           let appointmentDate;
+                           try {
+                               appointmentDate = new Date(appointment.date);
+                               appointmentDate.setHours(0, 0, 0, 0);
+                           } catch (e) {
+                               console.warn('⚠️ Invalid date:', appointment.date);
+                               return false;
+                           }
+
+                           let shouldInclude = false;
+                           
+                // Áp dụng filter theo tab
+                           switch (tabIndex) {
+                               case 0: // Sắp tới (Upcoming)
+                        // Hiển thị appointments với status "đã lên lịch"
+                        shouldInclude = appointment.status === 'đã lên lịch' ||
+                                       appointment.status === 'Đã lên lịch' ||
+                                       appointment.status === 'DA_LEN_LICH';
+                                   break;
+                    case 1: // Đang khám (In Progress)
+                        // Hiển thị appointments với status "đang khám"
+                        shouldInclude = appointment.status === 'đang khám' ||
+                                       appointment.status === 'Đang khám' ||
+                                       appointment.status === 'DANG_KHAM';
+                                   break;
+                               case 2: // Đã hoàn thành (Completed)
+                        // Hiển thị appointments với status "đã hoàn thành"
+                        shouldInclude = appointment.status === 'đã hoàn thành' ||
+                                       appointment.status === 'Đã hoàn thành' ||
+                                       appointment.status === 'DA_HOAN_THANH';
+                                   break;
+                               case 3: // Đã hủy (Cancelled)
+                        // Hiển thị appointments với status "đã hủy"
+                        shouldInclude = appointment.status === 'đã hủy' ||
+                                       appointment.status === 'Đã hủy' ||
+                                       appointment.status === 'DA_HUY';
+                                   break;
+                               default:
+                        shouldInclude = false;
+                }
+                
+                console.log(`📊 Appointment ${appointment.id}: status="${appointment.status}", tabIndex=${tabIndex}, shouldInclude=${shouldInclude}`);
+                if (!shouldInclude) {
+                    console.log(`❌ Appointment ${appointment.id} không match filter cho tab ${tabIndex}`);
+                } else {
+                    console.log(`✅ Appointment ${appointment.id} match filter cho tab ${tabIndex}`);
+                }
+                return shouldInclude;
+            });
+            
+            console.log(`📊 Filtered result for tab ${tabIndex}:`, filtered.length);
+            return filtered;
+        }
+
+        // Tạo HTML cho các dòng bảng
+        generateTableRows(appointments) {
+            console.log('🔄 Generating table rows for', appointments.length, 'appointments');
+            
+            const rows = appointments.map((appointment, index) => {
+                console.log('📊 Generating row for appointment:', appointment);
+                console.log('📊 Appointment ID:', appointment.id);
+                
+                // Mapping dữ liệu từ API response
+                const patientName = appointment.name || appointment.patientName || appointment.patient?.name || 'N/A';
+                const doctorName = appointment.doctorName || appointment.doctor?.name || 'N/A';
+                const clinicName = appointment.clinic || appointment.clinicName || appointment.clinic?.name || 'N/A';
+                const date = appointment.date || appointment.appointmentDate || 'N/A';
+                const shift = appointment.shift || appointment.shiftName || 'N/A';
+                const status = appointment.status || 'N/A';
+                const patientImage = appointment.patientImage || appointment.patient?.image || './assets/images/table/10.png';
+                
+                console.log('📊 Mapped Data:', {
+                    patientName,
+                    doctorName,
+                    clinicName,
+                    date,
+                    shift,
+                    status,
+                    patientImage
+                });
+                
+                const row = `
+                    <tr data-appointment-id="${appointment.id}">
+                        <th scope="row">${index + 1}</th>
+                        <td>
+                            <h5 class="mb-0">${patientName}</h5>
+                        </td>
+                        <td>${doctorName}</td>
+                        <td>${clinicName}</td>
+                        <td>${Utils.formatDate(date)}</td>
+                        <td>${Utils.getShiftText(shift)}</td>
+                        <td>${Utils.createStatusBadge(status)}</td>
+                        <td>
+                            ${Utils.createActionButtons(appointment.id, status, appointment)}
+                        </td>
+                    </tr>
+                `;
+                
+                console.log('📊 Generated row HTML length:', row.length);
+                console.log('📊 Generated row HTML preview:', row.substring(0, 200) + '...');
+                return row;
+            });
+            
+            const result = rows.join('');
+            console.log('✅ Generated total HTML length:', result.length);
+            console.log('✅ Generated HTML preview:', result.substring(0, 500) + '...');
+            return result;
+        }
+
+        // Cập nhật counter
+        updateCounter() {
+            console.log('🔄 Updating counter...');
+            
+            // Đếm tất cả appointments
+            const totalCount = appState.appointments.length;
+            console.log('📊 Total appointments count:', totalCount);
+            
+            // Đếm appointments hôm nay
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const todayCount = appState.appointments.filter(appointment => {
+                try {
+                    const appointmentDate = new Date(appointment.date);
+                    appointmentDate.setHours(0, 0, 0, 0);
+                    return appointmentDate.getTime() === today.getTime();
+                } catch (e) {
+                    console.warn('⚠️ Invalid date for counter:', appointment.date);
+                    return false;
+                }
+            }).length;
+
+            console.log('📊 Today appointments count:', todayCount);
+            console.log('📊 All appointments:', appState.appointments);
+
+            // Cập nhật counter trong title - hiển thị tổng số appointments
+            const counterElement = document.querySelector('[data-counter="today"]');
+            console.log('🔍 Looking for counter element with [data-counter="today"]');
+            console.log('🔍 Counter element found:', !!counterElement);
+            
+            if (counterElement) {
+                console.log('🔍 Counter element text before update:', counterElement.textContent);
+                counterElement.textContent = `${totalCount} cuộc hẹn đã lên lịch`;
+                console.log('🔍 Counter element text after update:', counterElement.textContent);
+                console.log('✅ Counter updated to show total appointments');
+            } else {
+                console.warn('⚠️ Counter element not found');
+                // Tìm tất cả elements có thể là counter
+                const allElements = document.querySelectorAll('*');
+                const possibleCounters = Array.from(allElements).filter(el => 
+                    el.textContent && el.textContent.includes('cuộc hẹn')
+                );
+                console.log('🔍 Possible counter elements found:', possibleCounters.length);
+                possibleCounters.forEach((el, index) => {
+                    console.log(`🔍 Possible counter ${index}:`, el.textContent);
+                });
+            }
+        }
+
+        // Thiết lập filter
+        setFilter(filter) {
+            console.log('🔍 Setting filter:', filter);
+            appState.currentFilter = filter;
+            
+            // Cập nhật UI để hiển thị filter đang active
+            this.updateFilterUI(filter);
+            
+            // Cập nhật bảng theo filter
+            this.updateAllTables();
+            
+            // Cập nhật counter theo filter
+            if (window.AppointmentFilter) {
+                window.AppointmentFilter.updateCounter();
+            }
+        }
+
+        // Cập nhật UI filter
+        updateFilterUI(activeFilter) {
+            // Tìm tất cả các nút filter
+            const filterButtons = document.querySelectorAll('[data-filter]');
+            filterButtons.forEach(button => {
+                const filterType = button.getAttribute('data-filter');
+                if (filterType === activeFilter) {
+                    button.classList.add('active', 'btn-primary');
+                    button.classList.remove('btn-outline-primary');
+                } else {
+                    button.classList.remove('active', 'btn-primary');
+                    button.classList.add('btn-outline-primary');
+                }
+            });
+
+            // Cập nhật dropdown filter nếu có
+            const filterDropdown = document.getElementById('appointmentFilterDropdown');
+            if (filterDropdown) {
+                const activeItem = filterDropdown.querySelector(`[data-value="${activeFilter}"]`);
+                if (activeItem) {
+                    const buttonText = filterDropdown.querySelector('.dropdown-toggle');
+                    if (buttonText) {
+                        buttonText.textContent = activeItem.textContent;
+                    }
+                }
+            }
+        }
+
+        // Áp dụng filter toàn cục
+        applyGlobalFilter(appointments, filterType) {
+            console.log('🔍 Applying global filter:', filterType);
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            switch (filterType) {
+                case 'today':
+                    return appointments.filter(apt => {
+                        const aptDate = new Date(apt.date).toISOString().split('T')[0];
+                        return aptDate === today;
+                    });
+                    
+                case 'this_week':
+                    const weekStart = this.getWeekStart();
+                    const weekEnd = this.getWeekEnd();
+                    return appointments.filter(apt => {
+                        const aptDate = new Date(apt.date);
+                        return aptDate >= weekStart && aptDate <= weekEnd;
+                    });
+                    
+                case 'this_month':
+                    const monthStart = this.getMonthStart();
+                    const monthEnd = this.getMonthEnd();
+                    return appointments.filter(apt => {
+                        const aptDate = new Date(apt.date);
+                        return aptDate >= monthStart && aptDate <= monthEnd;
+                    });
+                    
+                case 'pending':
+                    return appointments.filter(apt => 
+                        apt.status === 'đã lên lịch' || apt.status === 'Đã lên lịch'
+                    );
+                    
+                case 'in_progress':
+                    return appointments.filter(apt => 
+                        apt.status === 'đang khám' || apt.status === 'Đang khám'
+                    );
+                    
+                case 'completed':
+                    return appointments.filter(apt => 
+                        apt.status === 'đã hoàn thành' || apt.status === 'Đã hoàn thành'
+                    );
+                    
+                case 'cancelled':
+                    return appointments.filter(apt => 
+                        apt.status === 'đã hủy' || apt.status === 'Đã hủy'
+                    );
+                    
+                default:
+                    return appointments;
+            }
+        }
+
+        // Utility functions cho date
+        getWeekStart() {
+            const now = new Date();
+            const dayOfWeek = now.getDay();
+            const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            return new Date(now.setDate(diff));
+        }
+
+        getWeekEnd() {
+            const weekStart = this.getWeekStart();
+            return new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+        }
+
+        getMonthStart() {
+            const now = new Date();
+            return new Date(now.getFullYear(), now.getMonth(), 1);
+        }
+
+        getMonthEnd() {
+            const now = new Date();
+            return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        }
+
+        // Thử lại load
+        retryLoad() {
+            appState.retryCount = 0;
+            this.loadAppointments();
+        }
+
+        // Bắt đầu auto refresh
+        startAutoRefresh() {
+            setInterval(() => {
+                if (!appState.isLoading) {
+                    this.loadAppointments();
+                }
+            }, CONFIG.refreshInterval);
         }
     }
 
-    // Function chuyển đổi ca sang tiếng Việt
-    function getShiftText(shift) {
-        if (!shift) return 'N/A';
-        
-        switch (shift.toLowerCase()) {
-            case 'morning':
-                return 'Sáng';
-            case 'afternoon':
-                return 'Chiều';
-            case 'evening':
-                return 'Tối';
-            case 'sáng':
-                return 'Sáng';
-            case 'chiều':
-                return 'Chiều';
-            case 'tối':
-                return 'Tối';
-            default:
-                return shift;
-        }
-    }
-
-    function renderTable(status) {
-        // Find the active tab-pane
-        var activeTab = document.querySelector('.tab-pane.active');
-        if (!activeTab) return;
-        var tbody = activeTab.querySelector('tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        
-        // Lọc theo trạng thái
-        let filtered;
-        if (status === 'scheduled') {
-            // Tab "Sắp tới" bao gồm cả "Đã lên lịch" và "Đến muộn"
-            filtered = allAppointments.filter(item => 
-                item.status && (item.status.toLowerCase() === 'scheduled' || item.status.toLowerCase() === 'late')
-            );
+    // Khởi tạo khi DOM sẵn sàng
+    function init() {
+        // Đợi DOM content loaded trước
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('🔄 DOM Content Loaded - Waiting for tabs to be ready...');
+                waitForTabs();
+            });
         } else {
-            filtered = allAppointments.filter(item => 
-                item.status && item.status.toLowerCase() === status
-            );
+            console.log('🔄 DOM already ready - Waiting for tabs to be ready...');
+            waitForTabs();
         }
+    }
+
+    function waitForTabs() {
+        // Kiểm tra xem tabs đã được tạo chưa
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        if (tabPanes.length >= 4) {
+            console.log('✅ Tabs already exist, initializing AppointmentLoader');
+            window.AppointmentLoader = new AppointmentLoader();
+        } else {
+            console.log('⏳ Waiting for tabs to be created...');
+            // Đợi event tabsReady từ add-tabs-vn.js
+            document.addEventListener('tabsReady', () => {
+                console.log('✅ Tabs ready event received, initializing AppointmentLoader');
+                window.AppointmentLoader = new AppointmentLoader();
+            });
+            
+            // Fallback: nếu sau 2 giây vẫn chưa có tabs, khởi tạo anyway
+            setTimeout(() => {
+                if (!window.AppointmentLoader) {
+                    console.log('⚠️ Timeout waiting for tabs, initializing AppointmentLoader anyway');
+            window.AppointmentLoader = new AppointmentLoader();
+                }
+            }, 2000);
+        }
+    }
+
+    // Khởi chạy
+    init();
+
+    // Export các hàm cần thiết ra global scope
+    window.loadAppointments = function(filterType = null) {
+        if (window.AppointmentLoader) {
+            return window.AppointmentLoader.loadAppointments();
+        } else {
+            console.warn('AppointmentLoader chưa được khởi tạo');
+        }
+    };
+
+    window.filterAppointments = function(filterType) {
+        if (window.AppointmentLoader) {
+            window.AppointmentLoader.setFilter(filterType);
+        } else {
+            console.warn('AppointmentLoader chưa được khởi tạo');
+        }
+    };
+
+    window.refreshAppointments = function() {
+        if (window.AppointmentLoader) {
+            window.AppointmentLoader.loadAppointments();
+        } else {
+            console.warn('AppointmentLoader chưa được khởi tạo');
+        }
+    };
+
+    // Test function để kiểm tra script
+    window.testAppointmentLoader = function() {
+        console.log('🧪 Testing AppointmentLoader...');
+        console.log('📊 Window.AppointmentLoader:', window.AppointmentLoader);
+        console.log('📊 AppState:', window.appState);
         
-        if (filtered.length === 0) {
-            var tr = document.createElement('tr');
-            tr.innerHTML = `<td colspan="7" style="text-align:center;color:#888;">Không có dữ liệu lịch hẹn</td>`;
-            tbody.appendChild(tr);
+        if (window.AppointmentLoader) {
+            console.log('✅ AppointmentLoader is initialized');
+            console.log('📊 Current appointments:', window.appState.appointments.length);
+            
+            // Test DOM elements
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            console.log('📊 Tab panes found:', tabPanes.length);
+            
+            const expectedTabs = ['upcoming', 'inprogress', 'completed', 'cancelled'];
+            tabPanes.forEach((pane, index) => {
+                console.log(`📊 Tab ${index}:`, pane.id);
+                console.log(`📊 Tab ${index} expected:`, expectedTabs[index]);
+                const table = pane.querySelector('table');
+                if (table) {
+                    const tbody = table.querySelector('tbody');
+                    console.log(`📊 Tab ${index} tbody:`, tbody ? 'Found' : 'Not found');
+                }
+            });
+            
+            // Test with mock data
+            const mockAppointment = {
+                id: 'test-1',
+                patientName: 'Test Patient',
+                doctorName: 'Test Doctor',
+                clinicName: 'Test Clinic',
+                date: '2024-01-15',
+                shift: 'MORNING',
+                status: 'PENDING'
+            };
+            
+            console.log('🧪 Testing with mock data:', mockAppointment);
+            const testHTML = Utils.createStatusBadge(mockAppointment.status);
+            console.log('🧪 Status badge test:', testHTML);
+            
+        } else {
+            console.error('❌ AppointmentLoader is not initialized');
+        }
+    };
+
+    // Test function để hiển thị dữ liệu test
+    window.testDisplayWithMockData = function() {
+        console.log('🧪 Testing display with mock data...');
+        
+        if (!window.AppointmentLoader) {
+            console.error('❌ AppointmentLoader not initialized');
             return;
         }
         
-        // Sắp xếp theo ngày và giờ tăng dần
-        filtered.sort((a, b) => {
-            const dateA = new Date(a.date || a.appointmentDate);
-            const dateB = new Date(b.date || b.appointmentDate);
-            // Nếu ngày giống nhau thì so sánh giờ
-            if (dateA.getTime() === dateB.getTime()) {
-                const timeA = a.time || a.startTime ? (a.time || a.startTime).substring(0,5) : '';
-                const timeB = b.time || b.startTime ? (b.time || b.startTime).substring(0,5) : '';
-                return timeA.localeCompare(timeB);
+        // Tạo dữ liệu test cho 4 tab
+        const mockAppointments = [
+            {
+                id: 'test-1',
+                patientName: 'Nguyễn Văn A',
+                doctorName: 'Bác sĩ Trần Thị B',
+                clinicName: 'Phòng khám Tim mạch',
+                date: '2024-01-15',
+                shift: 'MORNING',
+                status: 'PENDING'
+            },
+            {
+                id: 'test-2',
+                patientName: 'Lê Văn C',
+                doctorName: 'Bác sĩ Phạm Văn D',
+                clinicName: 'Phòng khám Nhi khoa',
+                date: '2024-01-16',
+                shift: 'AFTERNOON',
+                status: 'IN_PROGRESS'
+            },
+            {
+                id: 'test-3',
+                patientName: 'Trần Thị E',
+                doctorName: 'Bác sĩ Nguyễn Văn F',
+                clinicName: 'Phòng khám Da liễu',
+                date: '2024-01-14',
+                shift: 'EVENING',
+                status: 'COMPLETED'
+            },
+            {
+                id: 'test-4',
+                patientName: 'Phạm Văn G',
+                doctorName: 'Bác sĩ Lê Thị H',
+                clinicName: 'Phòng khám Tai mũi họng',
+                date: '2024-01-17',
+                shift: 'MORNING',
+                status: 'CANCELLED'
             }
-            return dateA - dateB;
-        });
+        ];
         
-        filtered.forEach((item, idx) => {
-            var tr = document.createElement('tr');
-            
-            // Format ngày giờ - hỗ trợ cả field cũ và mới
-            let dateTimeText = '';
-            const appointmentDate = item.date || item.appointmentDate;
-            const appointmentTime = item.time || item.startTime;
-            
-            if (appointmentDate && appointmentTime) {
-                const d = new Date(appointmentDate);
-                const [h, m] = appointmentTime.split(":");
-                d.setHours(h, m);
-                dateTimeText = d.toLocaleString('vi-VN', { 
-                    day: '2-digit', 
-                    month: '2-digit', 
-                    year: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    hour12: false 
-                });
-            }
-            
-            // Lấy thông tin bệnh nhân - hỗ trợ cả field cũ và mới
-            const patientName = item.patientName || item.patient?.name || item.name || 'Unknown';
-            const patientEmail = item.patientEmail || item.patient?.email || item.email || 'N/A';
-            
-            // Lấy thông tin bác sĩ - hỗ trợ cả field cũ và mới
-            const doctorName = item.doctorName || item.doctor?.name || item.doctorName || 'N/A';
-            
-            // Lấy thông tin phòng khám - hỗ trợ cả field cũ và mới
-            const clinic = item.clinic || item.clinicName || 'N/A';
-            
-            // Lấy ca (sáng/chiều) - hỗ trợ cả field cũ và mới
-            const shift = item.shift || item.ca || 'N/A';
-            
-            // Xác định loại bệnh nhân
-            const patientType = item.patientType || item.type || 'New Patient';
-            
-            // Tạo action buttons dựa trên trạng thái
-            let actionButtons = '';
-            
-            // Nút "Xem chi tiết" cho tất cả trạng thái
-            const viewDetailButton = `
-                <a class="d-inline-block pe-2" href="#" onclick="viewAppointmentDetail(${item.id})" title="Xem chi tiết">
-                    <span class="text-primary">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 3.5C5.5 3.5 3.5 5.5 3.5 8C3.5 10.5 5.5 12.5 8 12.5C10.5 12.5 12.5 10.5 12.5 8C12.5 5.5 10.5 3.5 8 3.5ZM8 11C6.625 11 5.5 9.875 5.5 8.375C5.5 6.875 6.625 5.75 8 5.75C9.375 5.75 10.5 6.875 10.5 8.375C10.5 9.875 9.375 11 8 11Z" fill="currentColor"/>
-                            <path d="M8 6.75C7.25 6.75 6.75 7.25 6.75 8C6.75 8.75 7.25 9.25 8 9.25C8.75 9.25 9.25 8.75 9.25 8C9.25 7.25 8.75 6.75 8 6.75Z" fill="currentColor"/>
-                        </svg>
-                    </span>
-                </a>
-            `;
-            
-            if (status === 'scheduled' || status === 'late') {
-                // Tab "Sắp tới" (bao gồm cả "Đến muộn") - có nút Xem chi tiết, Sửa và Hủy
-                actionButtons = `
-                    ${viewDetailButton}
-                    <a class="d-inline-block pe-2" data-bs-toggle="offcanvas" href="#offcanvasAppointmentEdit" role="button" aria-controls="offcanvasAppointmentEdit" onclick="loadAppointmentForEdit(${item.id})" title="Sửa">
-                        <span class="text-success">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M9.31055 14.3321H14.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                <path d="M7.26562 3.50073L11.3548 6.64108" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        </span>
-                    </a>
-                    <a href="#" class="d-inline-block ps-2" onclick="cancelAppointment(${item.id})" title="Hủy">
-                        <span class="text-danger">
-                            <svg width="15" height="16" viewBox="0 0 15 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                <path d="M13.5312 3.67969H0.812744" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                <path d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                        </span>
-                    </a>
-                `;
-            } else if (status === 'inprogress') {
-                // Tab "Đang khám" - có nút Xem chi tiết, Hoàn thành, Tạm dừng và Hủy
-                actionButtons = `
-                    ${viewDetailButton}
-                    <button type="button" class="badge rounded-0 bg-success-subtle fw-500 px-3 py-2 border-0 me-2" onclick="completeAppointment(${item.id})">Hoàn thành</button>
-                    <button type="button" class="badge rounded-0 bg-warning-subtle fw-500 px-3 py-2 border-0 me-2" onclick="pauseAppointment(${item.id})">Tạm dừng</button>
-                    <button type="button" class="badge rounded-0 bg-danger-subtle fw-500 px-3 py-2 border-0" onclick="cancelAppointment(${item.id})">Hủy</button>
-                `;
-            } else if (status === 'completed') {
-                // Tab "Hoàn thành" - có nút Xem chi tiết, Accept và Cancel
-                actionButtons = `
-                    ${viewDetailButton}
-                    <button type="button" class="badge rounded-0 bg-success-subtle fw-500 px-3 py-2 border-0 me-2" onclick="acceptAppointment(${item.id})">Accept</button>
-                    <button type="button" class="badge rounded-0 bg-danger-subtle fw-500 px-3 py-2 border-0" onclick="cancelAppointment(${item.id})">Cancel</button>
-                `;
-            } else if (status === 'cancelled') {
-                // Tab "Đã hủy" - chỉ có nút Xem chi tiết
-                actionButtons = `
-                    ${viewDetailButton}
-                    <span class="badge bg-secondary">Đã hủy</span>
-                `;
-            }
-            
-            // Đảm bảo chỉ tạo 8 cột theo thứ tự: STT, Tên BN, Tên BS, Phòng khám, Ngày, Ca, Trạng thái, Hành động
-            tr.innerHTML = `
-                <th scope="row">${idx + 1}</th>
-                <td>
-                    <div class="d-flex align-items-center gap-3">
-                        <img src="./assets/images/table/${10 + (idx % 4)}.png" class="img-fluid flex-shrink-0 icon-40 object-fit-cover" alt="icon">
-                        <h5 class="mb-0">${patientName}</h5>
-                    </div>
-                </td>
-                <td>${doctorName}</td>
-                <td>${clinic}</td>
-                <td>${appointmentDate ? (() => {
-                    try {
-                        return new Date(appointmentDate).toLocaleDateString('vi-VN');
-                    } catch (e) {
-                        return appointmentDate;
-                    }
-                })() : 'N/A'}</td>
-                <td>${getShiftText(shift)}</td>
-                <td>${getStatusText(item.status)}</td>
-                <td>${actionButtons}</td>
-            `;
-            
-            tbody.appendChild(tr);
-        });
+        console.log('🧪 Mock appointments:', mockAppointments);
+        
+        // Cập nhật appState với dữ liệu test
+        window.appState.appointments = mockAppointments;
+        window.appState.lastUpdate = new Date();
+        
+        console.log('🧪 Updated appState:', window.appState);
+        
+        // Cập nhật bảng
+        window.AppointmentLoader.updateAllTables();
+        
+        console.log('🧪 Display test completed');
+    };
+
+    // Export appState để các file khác có thể truy cập
+    window.appState = appState;
+    window.AppointmentUtils = Utils;
+
+    // Helper functions
+    function getStatusColor(status) {
+        const statusMap = {
+            'đã lên lịch': 'warning',
+            'Đã lên lịch': 'warning',
+            'DA_LEN_LICH': 'warning',
+            'đang khám': 'info',
+            'Đang khám': 'info',
+            'DANG_KHAM': 'info',
+            'đã hoàn thành': 'success',
+            'Đã hoàn thành': 'success',
+            'DA_HOAN_THANH': 'success',
+            'đã hủy': 'danger',
+            'Đã hủy': 'danger',
+            'DA_HUY': 'danger'
+        };
+        return statusMap[status] || 'secondary';
     }
 
-    // Load appointment data for editing
-    window.loadAppointmentForEdit = function(appointmentId) {
-        fetch(`${API_BASE_URL}/api/appointment/detail/${appointmentId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.id) {
-                    // Fill the edit form - hỗ trợ cả field cũ và mới
-                    const editForm = document.getElementById('editAppointmentForm');
-                    if (editForm) {
-                        editForm.querySelector('#edit-appointment-id').value = data.id;
-                        editForm.querySelector('#edit-patient-name').value = data.patientName || data.name || '';
-                        editForm.querySelector('#edit-patient-email').value = data.patientEmail || data.email || '';
-                        editForm.querySelector('#edit-doctor-name').value = data.doctorName || data.doctor?.name || '';
-                        editForm.querySelector('#edit-clinic').value = data.clinic || data.clinicName || '';
-                        
-                        const appointmentDate = data.date || data.appointmentDate;
-                        editForm.querySelector('#edit-date').value = appointmentDate ? new Date(appointmentDate).toISOString().slice(0,10) : '';
-                        
-                        const appointmentTime = data.time || data.startTime;
-                        editForm.querySelector('#edit-time').value = appointmentTime ? appointmentTime.substring(0,5) : '';
-                        
-                        editForm.querySelector('#edit-reason').value = data.reason || data.shift || data.ca || '';
-                        editForm.querySelector('#edit-type').value = data.patientType || data.type || 'New Patient';
-                    }
-                }
-            })
-            .catch(err => {
-                console.error('Error loading appointment for edit:', err);
-                alert('Lỗi khi tải thông tin lịch hẹn');
-            });
-    };
+    function formatCurrency(amount) {
+        if (!amount || amount === 0) return 'Miễn phí';
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    }
 
-    // Delete appointment
-    window.deleteAppointment = function(appointmentId) {
-        if (confirm('Bạn có chắc chắn muốn xóa lịch hẹn này?')) {
-            fetch(`${API_BASE_URL}/api/appointment/delete/${appointmentId}`, {
-                method: 'DELETE'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Xóa lịch hẹn thành công');
-                    loadAppointments(); // Reload data
-                } else {
-                    alert('Lỗi khi xóa lịch hẹn: ' + data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Error deleting appointment:', err);
-                alert('Lỗi khi xóa lịch hẹn');
-            });
-        }
-    };
-
-    // Accept appointment
-    window.acceptAppointment = function(appointmentId) {
-        fetch(`${API_BASE_URL}/api/appointment/accept/${appointmentId}`, {
-            method: 'PUT'
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('Chấp nhận lịch hẹn thành công');
-                loadAppointments(); // Reload data
-            } else {
-                alert('Lỗi khi chấp nhận lịch hẹn: ' + data.message);
-            }
-        })
-        .catch(err => {
-            console.error('Error accepting appointment:', err);
-            alert('Lỗi khi chấp nhận lịch hẹn');
-        });
-    };
-
-    // Cancel appointment
-    window.cancelAppointment = function(appointmentId) {
-        const reason = prompt('Nhập lý do hủy lịch hẹn:');
-        if (reason !== null) {
-            fetch(`${API_BASE_URL}/api/appointment/cancel/${appointmentId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ reason: reason })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Hủy lịch hẹn thành công');
-                    loadAppointments(); // Reload data
-                } else {
-                    alert('Lỗi khi hủy lịch hẹn: ' + data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Error cancelling appointment:', err);
-                alert('Lỗi khi hủy lịch hẹn');
-            });
-        }
-    };
-
-    // Update appointment
-    window.updateAppointment = function() {
-        const form = document.getElementById('editAppointmentForm');
-        const formData = new FormData(form);
-        
-        const appointmentData = {
-            id: formData.get('appointment-id'),
-            patientName: formData.get('patient-name'),
-            patientEmail: formData.get('patient-email'),
-            doctorName: formData.get('doctor-name'),
-            clinic: formData.get('clinic'),
-            date: formData.get('date'),
-            time: formData.get('time'),
-            reason: formData.get('reason'),
-            patientType: formData.get('type')
-        };
-
-        fetch(`${API_BASE_URL}/api/appointment/update`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(appointmentData)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('Cập nhật lịch hẹn thành công');
-                // Close offcanvas
-                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasAppointmentEdit'));
-                offcanvas.hide();
-                loadAppointments(); // Reload data
-            } else {
-                alert('Lỗi khi cập nhật lịch hẹn: ' + data.message);
-            }
-        })
-        .catch(err => {
-            console.error('Error updating appointment:', err);
-            alert('Lỗi khi cập nhật lịch hẹn');
-        });
-    };
-
-    // Complete appointment (chuyển từ đang khám sang hoàn thành)
-    window.completeAppointment = function(appointmentId) {
-        if (confirm('Bạn có chắc chắn muốn hoàn thành lịch hẹn này?')) {
-            fetch(`${API_BASE_URL}/api/appointment/complete/${appointmentId}`, {
-                method: 'PUT'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Hoàn thành lịch hẹn thành công');
-                    loadAppointments(); // Reload data
-                } else {
-                    alert('Lỗi khi hoàn thành lịch hẹn: ' + data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Error completing appointment:', err);
-                alert('Lỗi khi hoàn thành lịch hẹn');
-            });
-        }
-    };
-
-    // Pause appointment (tạm dừng khám)
-    window.pauseAppointment = function(appointmentId) {
-        const reason = prompt('Nhập lý do tạm dừng khám:');
-        if (reason !== null) {
-            fetch(`${API_BASE_URL}/api/appointment/pause/${appointmentId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ reason: reason })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Tạm dừng lịch hẹn thành công');
-                    loadAppointments(); // Reload data
-                } else {
-                    alert('Lỗi khi tạm dừng lịch hẹn: ' + data.message);
-                }
-            })
-            .catch(err => {
-                console.error('Error pausing appointment:', err);
-                alert('Lỗi khi tạm dừng lịch hẹn');
-            });
-        }
-    };
-
-    // View appointment detail
+    // Global functions cho các nút hành động
     window.viewAppointmentDetail = function(appointmentId) {
-        fetch(`${API_BASE_URL}/api/appointment/detail/${appointmentId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.id) {
-                    // Tạo modal hiển thị chi tiết lịch hẹn
-                    const detailHtml = `
-                        <div class="modal fade" id="appointmentDetailModal" tabindex="-1" aria-labelledby="appointmentDetailModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="appointmentDetailModalLabel">Chi tiết lịch hẹn</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <h6 class="fw-bold">Thông tin bệnh nhân</h6>
-                                                <p><strong>Tên:</strong> ${data.name || 'N/A'}</p>
-                                                <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h6 class="fw-bold">Thông tin lịch hẹn</h6>
-                                                <p><strong>Ngày:</strong> ${data.date ? new Date(data.date).toLocaleDateString('vi-VN') : 'N/A'}</p>
-                                                <p><strong>Giờ:</strong> ${data.time || 'N/A'}</p>
-                                                <p><strong>Ca:</strong> ${getShiftText(data.shift)}</p>
-                                                <p><strong>Trạng thái:</strong> ${getStatusText(data.status)}</p>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-md-6">
-                                                <h6 class="fw-bold">Thông tin bác sĩ</h6>
-                                                <p><strong>Tên bác sĩ:</strong> ${data.doctorName || 'N/A'}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <h6 class="fw-bold">Thông tin phòng khám</h6>
-                                                <p><strong>Phòng khám:</strong> ${data.clinic || 'N/A'}</p>
-                                                <p><strong>Địa chỉ:</strong> ${data.clinicAddress || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <h6 class="fw-bold">Dịch vụ</h6>
-                                                <p><strong>Tên dịch vụ:</strong> ${data.serviceName || 'N/A'}</p>
-                                            </div>
-                                        </div>
-                                        ${data.note ? `
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <h6 class="fw-bold">Ghi chú</h6>
-                                                <p>${data.note}</p>
-                                            </div>
-                                        </div>
-                                        ` : ''}
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                                    </div>
-                                </div>
+        console.log('🔍 Viewing appointment detail:', appointmentId);
+        
+        // Hiển thị loading
+        const loadingHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Đang tải thông tin chi tiết...</p>
+            </div>
+        `;
+        
+        // Tạo modal nếu chưa có
+        if (!document.getElementById('appointmentDetailModal')) {
+            const modalHTML = `
+                <div class="modal fade" id="appointmentDetailModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Chi tiết cuộc hẹn</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="appointmentDetailContent">
+                                ${loadingHTML}
                             </div>
                         </div>
-                    `;
-                    
-                    // Xóa modal cũ nếu có
-                    const oldModal = document.getElementById('appointmentDetailModal');
-                    if (oldModal) {
-                        oldModal.remove();
-                    }
-                    
-                    // Thêm modal mới vào body
-                    document.body.insertAdjacentHTML('beforeend', detailHtml);
-                    
-                    // Hiển thị modal
-                    const modal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
-                    modal.show();
-                    
-                    // Xóa modal khi đóng
-                    document.getElementById('appointmentDetailModal').addEventListener('hidden.bs.modal', function() {
-                        this.remove();
-                    });
-                } else {
-                    alert('Không tìm thấy thông tin lịch hẹn');
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        } else {
+            // Hiển thị loading trong modal hiện có
+            const content = document.getElementById('appointmentDetailContent');
+            content.innerHTML = loadingHTML;
+        }
+        
+        // Hiển thị modal
+        const modal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
+        modal.show();
+        
+        // Gọi API để lấy thông tin chi tiết
+        fetch(window.AppointmentAPI.appointments.detail(appointmentId))
+            .then(response => {
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
+                // Kiểm tra content-type
+                const contentType = response.headers.get('content-type');
+                console.log('📡 Content-Type:', contentType);
+                
+                if (!contentType || !contentType.includes('application/json')) {
+                    // Nếu không phải JSON, đọc text để debug
+                    return response.text().then(text => {
+                        console.error('❌ Server trả về không phải JSON:', text);
+                        throw new Error('Server trả về không phải JSON. Vui lòng kiểm tra API endpoint.');
+                    });
+                }
+                
+                return response.json();
             })
-            .catch(err => {
-                console.error('Error loading appointment detail:', err);
-                alert('Lỗi khi tải thông tin chi tiết lịch hẹn');
+            .then(data => {
+                console.log('📊 API Detail Response:', data);
+                
+                if (!data.success || !data.data) {
+                    throw new Error(data.message || 'Không thể tải thông tin chi tiết');
+                }
+                
+                const appointment = data.data;
+                console.log('📊 Appointment detail data:', appointment);
+                console.log('📊 Doctor phone:', appointment.doctorPhone);
+                
+                // Fill content với dữ liệu từ API chi tiết
+                const content = document.getElementById('appointmentDetailContent');
+                content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-user text-primary me-2"></i>
+                                Thông tin bệnh nhân
+                            </h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="${appointment.patientImage || appointment.patient?.image || './assets/images/table/10.png'}" 
+                                     class="rounded-circle me-3" 
+                                     width="60" 
+                                     height="60"
+                                     alt="Ảnh bệnh nhân"
+                                     onerror="this.src='./assets/images/table/10.png'">
+                                <div>
+                                    <h6 class="mb-1">${appointment.name || appointment.patientName || 'N/A'}</h6>
+                                    <small class="text-muted">Mã: ${appointment.patientId || 'N/A'}</small>
+                                </div>
+                            </div>
+                            <p><strong>Số điện thoại:</strong> ${appointment.patientPhone || appointment.patient?.phone || appointment.phone || appointment.patientPhone || 'N/A'}</p>
+                            <p><strong>Email:</strong> ${appointment.patientEmail || appointment.patient?.email || appointment.email || appointment.patientEmail || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-user-md text-success me-2"></i>
+                                Thông tin bác sĩ
+                            </h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <img src="${appointment.doctorImage || appointment.doctor?.image || './assets/images/table/10.png'}" 
+                                     class="rounded-circle me-3" 
+                                     width="60" 
+                                     height="60"
+                                     alt="Ảnh bác sĩ"
+                                     onerror="this.src='./assets/images/table/10.png'">
+                                <div>
+                                    <h6 class="mb-1">${appointment.doctorName || 'N/A'}</h6>
+                                    <small class="text-muted">${appointment.doctorSpecialty || appointment.doctor?.specialty || 'Chuyên khoa'}</small>
+                                </div>
+                            </div>
+                            <p><strong>Phòng khám:</strong> ${appointment.clinic || appointment.clinicName || 'N/A'}</p>
+                            <p><strong>Số điện thoại:</strong> ${appointment.doctorPhone || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-calendar-alt text-info me-2"></i>
+                                Thông tin lịch hẹn
+                            </h6>
+                            <p><strong>Ngày:</strong> ${new Date(appointment.date).toLocaleDateString('vi-VN')}</p>
+                            <p><strong>Ca:</strong> ${appointment.shift || 'N/A'}</p>
+                            <p><strong>Thời gian bắt đầu:</strong> ${appointment.startTime || appointment.timeStart || 'N/A'}</p>
+                            <p><strong>Thời gian kết thúc:</strong> ${appointment.endTime || appointment.timeEnd || 'N/A'}</p>
+                            <p><strong>Trạng thái:</strong> <span class="badge bg-${getStatusColor(appointment.status)}">${appointment.status}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-stethoscope text-warning me-2"></i>
+                                Dịch vụ khám
+                            </h6>
+                            <p><strong>Tên dịch vụ:</strong> ${appointment.serviceName || appointment.service?.name || 'N/A'}</p>
+                            <p><strong>Mô tả:</strong> ${appointment.serviceDescription || appointment.service?.description || 'N/A'}</p>
+                            <hr>
+                            <h6 class="mb-2">
+                                <i class="fas fa-comment text-secondary me-2"></i>
+                                Ghi chú
+                            </h6>
+                            <p class="text-muted">${appointment.note || 'Không có ghi chú'}</p>
+                        </div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('❌ Lỗi khi tải thông tin chi tiết:', error);
+                const content = document.getElementById('appointmentDetailContent');
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Lỗi khi tải thông tin chi tiết: ${error.message}
+                    </div>
+                `;
             });
     };
 
-    // Load all appointments
-    function loadAppointments() {
-        fetch(`${API_BASE_URL}/api/appointment/list`)
-            .then(res => {
-                if (!res.ok) throw new Error('API error: ' + res.status);
-                return res.json();
-            })
-            .then(data => {
-                console.log('Appointments data:', data); // Debug log
-                allAppointments = data;
-                // Mặc định hiển thị tab "Sắp tới"
-                renderTable('scheduled');
-            })
-            .catch(err => {
-                console.error('Error loading appointments:', err);
-                var activeTab = document.querySelector('.tab-pane.active');
-                var tbody = activeTab ? activeTab.querySelector('tbody') : null;
-                if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:red;">Lỗi tải dữ liệu lịch hẹn: ${err.message}</td></tr>`;
+    window.editAppointment = function(appointmentId) {
+        console.log('✏️ Editing appointment:', appointmentId);
+        alert('Chức năng chỉnh sửa cuộc hẹn sẽ được phát triển sau!');
+    };
+
+    window.startAppointment = function(appointmentId) {
+        console.log('▶️ Starting appointment:', appointmentId);
+        
+        if (confirm('Bạn có chắc chắn muốn bắt đầu khám cho cuộc hẹn này?')) {
+            // Gọi API để chuyển trạng thái sang "đang khám"
+            fetch(`https://localhost:7097/api/appointment/start/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            });
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        loadAppointments();
-
-        // Gắn sự kiện cho các tab
-        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
-            btn.addEventListener('shown.bs.tab', function(e) {
-                // Xác định trạng thái cần lọc dựa vào tab
-                let status = 'scheduled';
-                const target = e.target.getAttribute('data-bs-target');
-                if (target === '#upcoming') status = 'scheduled';
-                else if (target === '#inprogress') status = 'inprogress';
-                else if (target === '#request') status = 'completed';
-                else if (target === '#cancelled') status = 'cancelled';
-                renderTable(status);
-            });
-        });
-
-        // Gắn sự kiện cho form cập nhật
-        const updateForm = document.getElementById('editAppointmentForm');
-        if (updateForm) {
-            updateForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                updateAppointment();
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Bắt đầu khám thành công!');
+                    // Reload appointments
+                    if (window.AppointmentLoader) {
+                        window.AppointmentLoader.loadAppointments();
+                    }
+                } else {
+                    alert('Lỗi khi bắt đầu khám: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error starting appointment:', error);
+                alert('Lỗi khi bắt đầu khám!');
             });
         }
-    });
+    };
+
+    window.cancelAppointment = function(appointmentId) {
+        console.log('❌ Canceling appointment:', appointmentId);
+        
+        const reason = prompt('Lý do hủy cuộc hẹn (không bắt buộc):');
+        if (reason === null) return; // User clicked Cancel
+        
+        if (confirm('Bạn có chắc chắn muốn hủy cuộc hẹn này?')) {
+            // Gọi API để hủy appointment
+            fetch(`https://localhost:7097/api/appointment/cancel/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reason: reason || 'Không có lý do'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Hủy cuộc hẹn thành công!');
+                    // Reload appointments
+                    if (window.AppointmentLoader) {
+                        window.AppointmentLoader.loadAppointments();
+                    }
+                } else {
+                    alert('Lỗi khi hủy cuộc hẹn: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error canceling appointment:', error);
+                alert('Lỗi khi hủy cuộc hẹn!');
+            });
+        }
+    };
+
+    window.completeAppointment = function(appointmentId) {
+        console.log('✅ Completing appointment:', appointmentId);
+        
+        if (confirm('Bạn có chắc chắn muốn hoàn thành cuộc hẹn này?')) {
+            // Gọi API để chuyển trạng thái sang "đã hoàn thành"
+            fetch(`https://localhost:7097/api/appointment/complete/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Hoàn thành cuộc hẹn thành công!');
+                    // Reload appointments
+                    if (window.AppointmentLoader) {
+                        window.AppointmentLoader.loadAppointments();
+                    }
+                } else {
+                    alert('Lỗi khi hoàn thành cuộc hẹn: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error completing appointment:', error);
+                alert('Lỗi khi hoàn thành cuộc hẹn!');
+            });
+        }
+    };
+
+    window.restoreAppointment = function(appointmentId) {
+        console.log('🔄 Restoring appointment:', appointmentId);
+        
+        if (confirm('Bạn có chắc chắn muốn khôi phục cuộc hẹn này về trạng thái "Sắp tới"?')) {
+            // Gọi API để khôi phục appointment
+            fetch(`https://localhost:7097/api/appointment/restore/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+                            .then(data => {
+                    if (data.success) {
+                        let successMessage = `✅ ${data.message}\n\n`;
+                        successMessage += `⏰ Thời gian khôi phục: ${data.restoredTime}\n`;
+                        if (data.shiftType && data.shiftTime) {
+                            successMessage += `📅 Ca làm việc: ${data.shiftType} (${data.shiftTime})`;
+                        }
+                        alert(successMessage);
+                        // Reload appointments
+                        if (window.AppointmentLoader) {
+                            window.AppointmentLoader.loadAppointments();
+                        }
+                    } else {
+                        let errorMessage = `❌ ${data.message}`;
+                        
+                        // Thêm thông tin chi tiết nếu có
+                        if (data.currentTime && data.shiftStart && data.shiftEnd) {
+                            errorMessage += `\n\n⏰ Thời gian hiện tại: ${data.currentTime}`;
+                            errorMessage += `\n🕐 Ca làm việc: ${data.shiftStart} - ${data.shiftEnd}`;
+                            errorMessage += `\n📅 Loại ca: ${data.shiftType}`;
+                        }
+                        
+                        if (data.leaveReason) {
+                            errorMessage += `\n📝 Lý do nghỉ phép: ${data.leaveReason}`;
+                        }
+                        
+                        alert(errorMessage);
+                    }
+                })
+            .catch(error => {
+                console.error('Error restoring appointment:', error);
+                alert('❌ Lỗi khi khôi phục cuộc hẹn!');
+            });
+        }
+    };
+
+    console.log('✅ Appointment Loader đã được khởi tạo');
+    console.log('🔧 Mở browser console để xem debug logs');
+    console.log('📤 Đã export các hàm: loadAppointments, filterAppointments, refreshAppointments');
+    console.log('🧪 Test functions: testAppointmentLoader(), testDisplayWithMockData()');
+
 })(); 

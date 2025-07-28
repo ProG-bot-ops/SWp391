@@ -3,7 +3,7 @@ namespace SWP391_SE1914_ManageHospital.Models.Entities;
 
 public class Insurance : BaseEntity
 {
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public InsuranceStatus Status { get; set; }
     public int CoveragePercent { get; set; }
     public DateTime StartDate { get; set; }

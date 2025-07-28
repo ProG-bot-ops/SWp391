@@ -121,6 +121,10 @@
                 if (window.loadAppointments) {
                     window.loadAppointments();
                 }
+                // Refresh appointment count
+                if (window.refreshAppointmentCount) {
+                    window.refreshAppointmentCount();
+                }
             } else {
                 alert('Lỗi khi thêm lịch hẹn: ' + (data.message || 'Unknown error'));
             }

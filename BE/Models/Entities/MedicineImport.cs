@@ -2,7 +2,7 @@
 {
     public class MedicineImport : BaseEntity
     {
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         public int SupplierId { get; set; }
         public virtual Supplier Supplier { get; set; }

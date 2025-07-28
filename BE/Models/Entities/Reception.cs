@@ -6,8 +6,8 @@ public class Reception : BaseEntity
 {
     public Gender Gender { get; set; }
     public DateTime Dob { get; set; }
-    public string CCCD { get; set; }
-    public string Phone { get; set; }
+    public string? CCCD { get; set; }
+    public string? Phone { get; set; }
     public string? ImageURL { get; set; }
     public ReceptionStatus Status { get; set; }
     public int UserId { get; set; }

@@ -6,10 +6,10 @@ public class Patient : BaseEntity
 {
     public Gender Gender { get; set; }
     public DateTime Dob { get; set; }
-    public string CCCD { get; set; }
-    public string Phone { get; set; }
+    public string? CCCD { get; set; }
+    public string? Phone { get; set; }
     public string? EmergencyContact { get; set; }
-    public string Address { get; set; }
+    public string? Address { get; set; }
     public string? InsuranceNumber { get; set; }
     public string? Allergies { get; set; }
     public PatientStatus Status { get; set; }
@@ -23,8 +23,4 @@ public class Patient : BaseEntity
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
     public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
-    
-
-
-
 }

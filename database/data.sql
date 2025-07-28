@@ -346,7 +346,10 @@ INSERT INTO appointments (Id, AppointmentDate, StartTime, EndTime, Shift, Status
 INSERT INTO doctor_appointment (Id, Status, DoctorId, AppointmentId) VALUES
 (1, 0, 1, 1),
 (2, 0, 5, 2),
-(3, 0, 8, 3);
+(3, 0, 8, 3),
+(4, 0, 1, 4),
+(5, 0, 5, 5),
+(6, 0, 8, 6);
 
 -- Insert sample nurse appointments (after appointments are created)
 INSERT INTO nurse_appointments (Id, Status, NurseId, AppointmentId) VALUES
@@ -511,3 +514,12 @@ INSERT INTO doctor_shifts (DoctorId, ShiftDate, ShiftType, StartTime, EndTime, N
 (8, DATE_ADD(CURDATE(), INTERVAL 28 DAY), 'Afternoon', '13:00:00', '17:00:00', CONCAT('Ca chiều ngày ', DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 28 DAY), '%d/%m/%Y')), NOW(), NOW(), 'System', 'System'),
 (9, DATE_ADD(CURDATE(), INTERVAL 29 DAY), 'Morning', '08:00:00', '12:00:00', CONCAT('Ca sáng ngày ', DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 29 DAY), '%d/%m/%Y')), NOW(), NOW(), 'System', 'System'),
 (9, DATE_ADD(CURDATE(), INTERVAL 29 DAY), 'Afternoon', '13:00:00', '17:00:00', CONCAT('Ca chiều ngày ', DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 29 DAY), '%d/%m/%Y')), NOW(), NOW(), 'System', 'System');
+
+-- Insert sample doctor_services data
+INSERT INTO `doctor_services` (`DoctorId`, `ServiceId`) VALUES
+(1, 1), -- Doctor 1 provides Service 1
+(1, 2), -- Doctor 1 provides Service 2
+(2, 1), -- Doctor 2 provides Service 1
+(2, 3), -- Doctor 2 provides Service 3
+(3, 2), -- Doctor 3 provides Service 2
+(3, 3); -- Doctor 3 provides Service 3

@@ -2,21 +2,33 @@
 // Xóa dữ liệu tĩnh trong bảng và chuẩn bị cho dữ liệu động từ API
 (function() {
     function clearStaticData() {
+        // Chỉ xóa dữ liệu tĩnh nếu chưa có dữ liệu động
+        if (window.appState && window.appState.appointments && window.appState.appointments.length > 0) {
+            console.log('✅ Dữ liệu động đã có, bỏ qua việc xóa dữ liệu tĩnh');
+            return;
+        }
+
         // Xóa dữ liệu tĩnh trong tất cả các tab
         const tabPanes = document.querySelectorAll('.tab-pane');
         
         tabPanes.forEach(tabPane => {
             const tbody = tabPane.querySelector('tbody');
             if (tbody) {
-                // Giữ lại header, xóa tất cả dữ liệu
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            <i class="fas fa-spinner fa-spin me-2"></i>
-                            Đang tải dữ liệu...
-                        </td>
-                    </tr>
-                `;
+                // Kiểm tra xem có dữ liệu thực sự không (không phải loading message)
+                const hasRealData = tbody.querySelector('tr[data-appointment-id]') || 
+                                   tbody.querySelector('tr[data-item="list"]');
+                
+                if (!hasRealData) {
+                    // Giữ lại header, xóa tất cả dữ liệu
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                <i class="fas fa-spinner fa-spin me-2"></i>
+                                Đang tải dữ liệu...
+                            </td>
+                        </tr>
+                    `;
+                }
             }
         });
 
@@ -43,10 +55,12 @@
         console.log('✅ Đã xóa dữ liệu tĩnh, sẵn sàng cho dữ liệu động');
     }
 
-    // Chạy khi DOM sẵn sàng
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', clearStaticData);
-    } else {
-        clearStaticData();
-    }
+    // Chạy sau khi load-appointments.js đã khởi tạo
+    setTimeout(() => {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', clearStaticData);
+        } else {
+            clearStaticData();
+        }
+    }, 100);
 })(); 
