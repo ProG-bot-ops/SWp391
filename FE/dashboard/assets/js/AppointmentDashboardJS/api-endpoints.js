@@ -17,6 +17,8 @@
             delete: (id) => `${API_BASE_URL}/api/appointment/delete/${id}`,
             accept: (id) => `${API_BASE_URL}/api/appointment/accept/${id}`,
             cancel: (id) => `${API_BASE_URL}/api/appointment/cancel/${id}`,
+            complete: (id) => `${API_BASE_URL}/api/appointment/complete/${id}`,
+            pause: (id) => `${API_BASE_URL}/api/appointment/pause/${id}`,
             test: `${API_BASE_URL}/api/appointment/test`,
             statistics: `${API_BASE_URL}/api/appointment/statistics`
         },

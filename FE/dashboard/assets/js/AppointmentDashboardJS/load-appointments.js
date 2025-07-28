@@ -10,6 +10,8 @@
         switch (status.toLowerCase()) {
             case 'scheduled':
                 return 'Đã lên lịch';
+            case 'inprogress':
+                return 'Đang khám';
             case 'completed':
                 return 'Đã hoàn thành';
             case 'cancelled':
@@ -137,6 +139,13 @@
                             </svg>
                         </span>
                     </a>
+                `;
+            } else if (status === 'inprogress') {
+                // Tab "Đang khám" - có nút Hoàn thành và Hủy
+                actionButtons = `
+                    <button type="button" class="badge rounded-0 bg-success-subtle fw-500 px-3 py-2 border-0 me-2" onclick="completeAppointment(${item.id})">Hoàn thành</button>
+                    <button type="button" class="badge rounded-0 bg-warning-subtle fw-500 px-3 py-2 border-0 me-2" onclick="pauseAppointment(${item.id})">Tạm dừng</button>
+                    <button type="button" class="badge rounded-0 bg-danger-subtle fw-500 px-3 py-2 border-0" onclick="cancelAppointment(${item.id})">Hủy</button>
                 `;
             } else if (status === 'completed') {
                 // Tab "Hoàn thành" - có nút Accept và Cancel
@@ -321,6 +330,55 @@
         });
     };
 
+    // Complete appointment (chuyển từ đang khám sang hoàn thành)
+    window.completeAppointment = function(appointmentId) {
+        if (confirm('Bạn có chắc chắn muốn hoàn thành lịch hẹn này?')) {
+            fetch(`${API_BASE_URL}/api/appointment/complete/${appointmentId}`, {
+                method: 'PUT'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Hoàn thành lịch hẹn thành công');
+                    loadAppointments(); // Reload data
+                } else {
+                    alert('Lỗi khi hoàn thành lịch hẹn: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Error completing appointment:', err);
+                alert('Lỗi khi hoàn thành lịch hẹn');
+            });
+        }
+    };
+
+    // Pause appointment (tạm dừng khám)
+    window.pauseAppointment = function(appointmentId) {
+        const reason = prompt('Nhập lý do tạm dừng khám:');
+        if (reason !== null) {
+            fetch(`${API_BASE_URL}/api/appointment/pause/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Tạm dừng lịch hẹn thành công');
+                    loadAppointments(); // Reload data
+                } else {
+                    alert('Lỗi khi tạm dừng lịch hẹn: ' + data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Error pausing appointment:', err);
+                alert('Lỗi khi tạm dừng lịch hẹn');
+            });
+        }
+    };
+
     // Load all appointments
     function loadAppointments() {
         fetch(`${API_BASE_URL}/api/appointment/list`)
@@ -354,6 +412,7 @@
                 let status = 'scheduled';
                 const target = e.target.getAttribute('data-bs-target');
                 if (target === '#upcoming') status = 'scheduled';
+                else if (target === '#inprogress') status = 'inprogress';
                 else if (target === '#request') status = 'completed';
                 else if (target === '#cancelled') status = 'cancelled';
                 renderTable(status);

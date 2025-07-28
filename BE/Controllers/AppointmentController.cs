@@ -3075,6 +3075,7 @@ public class AppointmentController : ControllerBase
             {
                 total = await _context.Appointments.CountAsync(),
                 scheduled = await _context.Appointments.CountAsync(a => a.Status == AppointmentStatus.Scheduled),
+                inProgress = await _context.Appointments.CountAsync(a => a.Status == AppointmentStatus.InProgress),
                 completed = await _context.Appointments.CountAsync(a => a.Status == AppointmentStatus.Completed),
                 cancelled = await _context.Appointments.CountAsync(a => a.Status == AppointmentStatus.Cancelled),
                 today = await _context.Appointments.CountAsync(a => a.AppointmentDate == today),
@@ -3108,5 +3109,111 @@ public class AppointmentController : ControllerBase
             timestamp = DateTime.Now,
             version = "1.0.0"
         });
+    }
+
+    /// <summary>
+    /// Hoàn thành lịch hẹn (chuyển từ đang khám sang hoàn thành)
+    /// </summary>
+    /// <param name="id">ID lịch hẹn</param>
+    /// <returns>Kết quả hoàn thành</returns>
+    [HttpPut("complete/{id}")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> CompleteAppointment(int id)
+    {
+        try
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+
+            if (appointment == null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Không tìm thấy lịch hẹn"
+                });
+            }
+
+            // Chỉ cho phép hoàn thành lịch hẹn đang khám
+            if (appointment.Status != AppointmentStatus.InProgress)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Chỉ có thể hoàn thành lịch hẹn đang khám"
+                });
+            }
+
+            appointment.Status = AppointmentStatus.Completed;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Hoàn thành lịch hẹn thành công"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Tạm dừng lịch hẹn (chuyển từ đang khám sang đã lên lịch)
+    /// </summary>
+    /// <param name="id">ID lịch hẹn</param>
+    /// <param name="request">Lý do tạm dừng</param>
+    /// <returns>Kết quả tạm dừng</returns>
+    [HttpPut("pause/{id}")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> PauseAppointment(int id, [FromBody] AppointmentCancelRequest request)
+    {
+        try
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+
+            if (appointment == null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Không tìm thấy lịch hẹn"
+                });
+            }
+
+            // Chỉ cho phép tạm dừng lịch hẹn đang khám
+            if (appointment.Status != AppointmentStatus.InProgress)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Chỉ có thể tạm dừng lịch hẹn đang khám"
+                });
+            }
+
+            appointment.Status = AppointmentStatus.Scheduled;
+            appointment.Note = request.Reason ?? "Tạm dừng khám";
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Tạm dừng lịch hẹn thành công"
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = ex.Message
+            });
+        }
     }
 } 
