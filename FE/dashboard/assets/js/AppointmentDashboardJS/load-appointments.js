@@ -427,7 +427,6 @@
                                                 <h6 class="fw-bold">Thông tin bệnh nhân</h6>
                                                 <p><strong>Tên:</strong> ${data.name || 'N/A'}</p>
                                                 <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
-                                                <p><strong>Loại:</strong> ${data.type || 'N/A'}</p>
                                             </div>
                                             <div class="col-md-6">
                                                 <h6 class="fw-bold">Thông tin lịch hẹn</h6>
@@ -445,6 +444,13 @@
                                             <div class="col-md-6">
                                                 <h6 class="fw-bold">Thông tin phòng khám</h6>
                                                 <p><strong>Phòng khám:</strong> ${data.clinic || 'N/A'}</p>
+                                                <p><strong>Địa chỉ:</strong> ${data.clinicAddress || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col-12">
+                                                <h6 class="fw-bold">Dịch vụ</h6>
+                                                <p><strong>Tên dịch vụ:</strong> ${data.serviceName || 'N/A'}</p>
                                             </div>
                                         </div>
                                         ${data.note ? `

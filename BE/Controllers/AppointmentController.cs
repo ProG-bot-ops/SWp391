@@ -2690,6 +2690,8 @@ public class AppointmentController : ControllerBase
                 phone = appointment.Patient != null ? appointment.Patient.Phone : "N/A",
                 doctorName = appointment.Doctor_Appointments.FirstOrDefault() != null && appointment.Doctor_Appointments.FirstOrDefault().Doctor != null ? appointment.Doctor_Appointments.FirstOrDefault().Doctor.Name : "N/A",
                 clinic = appointment.Clinic != null ? appointment.Clinic.Name : "N/A",
+                clinicAddress = appointment.Clinic != null ? appointment.Clinic.Address : "N/A",
+                serviceName = appointment.Service != null ? appointment.Service.Name : "N/A",
                 date = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
                 time = appointment.StartTime != null ? appointment.StartTime.Value.ToString(@"hh\:mm") : "N/A",
                 shift = appointment.Shift ?? "N/A",
