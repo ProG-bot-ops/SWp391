@@ -95,6 +95,9 @@ public class AuthService : IAuthService
         var user = await _context.Users
         .Include(u => u.User_Roles)
             .ThenInclude(ur => ur.Role)
+        .Include(u => u.Patients)
+        .Include(u => u.Doctors)
+        .Include(u => u.Nurses)
         .FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null || !_passwordHasher.VerifyPassword(request.Password, user.Password))
@@ -164,14 +167,14 @@ public class AuthService : IAuthService
         new Claim("UserType", userType.ToString())
     };
 
-        // Lấy FullName
+        // Lấy FullName dựa trên userType
         string fullName = userType switch
         {
-            UserType.Admin => "/html/dashboard/index.html",
-            UserType.Doctor => "/html/frontend/doctor-ui.html",
-            UserType.Nurse => "/html/frontend/nurse-ui.html",
-            UserType.Patient => "/html/frontend/index.html",
-            _ => "/"
+            UserType.Admin => "Administrator",
+            UserType.Doctor => user.Doctors.FirstOrDefault()?.Name ?? "Doctor",
+            UserType.Nurse => user.Nurses.FirstOrDefault()?.Name ?? "Nurse",
+            UserType.Patient => user.Patients.FirstOrDefault()?.Name ?? "Patient",
+            _ => "User"
         };
 
         if (!string.IsNullOrEmpty(fullName))
@@ -475,6 +478,23 @@ public class AuthService : IAuthService
         }
 
         await _context.SaveChangesAsync();
+
+        // Gửi email chứa mật khẩu cho bệnh nhân mới
+        try
+        {
+            await _emailService.SendNewPatientPasswordEmailAsync(
+                toEmail: newUser.Email,
+                patientName: patient.Name,
+                password: request.Password
+            );
+            Console.WriteLine($"=== AUTH SERVICE: Email sent successfully to {newUser.Email} ===");
+        }
+        catch (Exception emailEx)
+        {
+            Console.WriteLine($"=== AUTH SERVICE: Email sending failed ===");
+            Console.WriteLine($"Email error: {emailEx.Message}");
+            // Không throw exception vì đăng ký đã thành công, chỉ gửi email thất bại
+        }
 
         //  Trả về response
         var response = new PatientRegisterResponse

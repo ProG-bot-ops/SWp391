@@ -20,7 +20,6 @@ public class PatientRegisterRequest
     [JsonPropertyName("fullName")]
     public string FullName { get; set; }
     
-    [Required]
     public string Code { get; set; }
 
     [Required]

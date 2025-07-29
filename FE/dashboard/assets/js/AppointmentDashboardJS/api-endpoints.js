@@ -51,15 +51,21 @@
         patients: {
             search: (term) => `${API_BASE_URL}/api/appointment/patient/search?term=${encodeURIComponent(term)}`,
             searchByPhone: (phone) => `${API_BASE_URL}/api/patient/search?phone=${encodeURIComponent(phone)}`,
+            searchByCCCD: (cccd) => `${API_BASE_URL}/api/patient/search?cccd=${encodeURIComponent(cccd)}`,
             create: `${API_BASE_URL}/api/patient/create`,
             update: (id) => `${API_BASE_URL}/api/patient/update/${id}`,
             detail: (id) => `${API_BASE_URL}/api/patient/detail/${id}`,
             list: `${API_BASE_URL}/api/patient/list`
         },
         
+        // Patient search endpoint for new form
+        patient: {
+            search: `${API_BASE_URL}/api/patient/search`
+        },
+        
         // Auth endpoints
         auth: {
-            register: `${API_BASE_URL}/api/auth/register`,
+            register: `${API_BASE_URL}/api/auth/register/patient`,
             login: `${API_BASE_URL}/api/auth/login`,
             sendPasswordEmail: `${API_BASE_URL}/api/auth/send-password-email`,
             resetPassword: `${API_BASE_URL}/api/auth/reset-password`,

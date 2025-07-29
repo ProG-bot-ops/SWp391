@@ -283,10 +283,13 @@
         // Reset patient info
         const nameInput = document.getElementById('addName');
         const phoneInput = document.getElementById('addPhone');
+        const phoneNumberInput = document.getElementById('addPhoneNumber');
+        const cccdInput = document.getElementById('addCCCD');
         const emailInput = document.getElementById('addEmail');
         const addressInput = document.getElementById('addAddress');
         const birthDateInput = document.getElementById('addBirthDate');
         const genderInput = document.getElementById('addGender');
+        const emergencyContactInput = document.getElementById('addEmergencyContact');
 
         if (nameInput) {
             nameInput.value = '';
@@ -295,6 +298,14 @@
         if (phoneInput) {
             phoneInput.value = '';
             phoneInput.disabled = false;
+        }
+        if (phoneNumberInput) {
+            phoneNumberInput.value = '';
+            phoneNumberInput.disabled = false;
+        }
+        if (cccdInput) {
+            cccdInput.value = '';
+            cccdInput.disabled = false;
         }
         if (emailInput) {
             emailInput.value = '';
@@ -311,6 +322,10 @@
         if (genderInput) {
             genderInput.value = '';
             genderInput.disabled = false;
+        }
+        if (emergencyContactInput) {
+            emergencyContactInput.value = '';
+            emergencyContactInput.disabled = false;
         }
 
         // Reset appointment fields

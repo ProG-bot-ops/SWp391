@@ -174,7 +174,7 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
             else if (role == "Patient")
             {
                 var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
-                if (patient == null) throw new Exception("Không tìm thấy bệnh nhân.");
+                if (patient is null) throw new Exception("Không tìm thấy bệnh nhân.");
 
                 prescriptionsQuery = _context.Prescriptions
                     .Where(p => p.PatientId == patient.Id); // Lọc theo PatientId

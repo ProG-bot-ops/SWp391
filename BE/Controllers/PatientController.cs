@@ -21,22 +21,93 @@ namespace SWP391_SE1914_ManageHospital.Controllers
             _service = service;
         }
 
-        [HttpPost("AddPatient")]
-        [ProducesResponseType(typeof(IEnumerable<Patient>), (int)HttpStatusCode.OK)]
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
-
-        public async Task<IActionResult> AddPatient([FromBody] PatientCreate create)
+        public async Task<IActionResult> SearchPatient([FromQuery] string? phone = null, [FromQuery] string? cccd = null)
         {
             try
             {
-                var respone = await _service.CreatePatientAsync(create);
-                return Ok(respone);
+                if (string.IsNullOrWhiteSpace(phone) && string.IsNullOrWhiteSpace(cccd))
+                {
+                    return BadRequest("Vui lòng cung cấp số điện thoại hoặc CCCD để tìm kiếm");
+                }
+
+                var patient = await _service.SearchPatientByPhoneOrCCCDAsync(phone, cccd);
+                if (patient is null)
+                {
+                    return NotFound(new { success = false, message = "Không tìm thấy bệnh nhân" });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        id = patient.Id,
+                        name = patient.Name ?? "N/A",
+                        phone = patient.Phone ?? "N/A",
+                        cccd = patient.CCCD ?? "N/A",
+                        email = patient.User?.Email ?? "N/A",
+                        address = patient.Address ?? "N/A",
+                        birthDate = patient.Dob.ToString("yyyy-MM-dd"),
+                        gender = patient.Gender.ToString(),
+                        imageUrl = patient.ImageURL ?? "N/A",
+                        status = patient.Status.ToString()
+                    },
+                    message = "Tìm kiếm bệnh nhân thành công"
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.ToString());
+                Console.WriteLine($"Error in SearchPatient: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
+        }
 
+        [HttpPost("create")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> CreatePatient([FromBody] PatientCreateRequest request)
+        {
+            try
+            {
+                var result = await _service.CreatePatientOnlyAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("create-with-appointment")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+        public async Task<IActionResult> CreatePatientWithAppointment([FromBody] PatientAndAppointmentCreateRequest request)
+        {
+            try
+            {
+                var result = await _service.CreatePatientAndAppointmentAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
 
 
@@ -205,6 +276,83 @@ namespace SWP391_SE1914_ManageHospital.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message); 
+            }
+        }
+
+        [HttpGet("debug-search")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> DebugSearch([FromQuery] string? phone = null, [FromQuery] string? cccd = null)
+        {
+            try
+            {
+                var result = await _service.DebugSearchAsync(phone, cccd);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
+        }
+
+        [HttpGet("list-all")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> ListAllPatients()
+        {
+            try
+            {
+                var allPatients = await _service.GetAllPatientsForDebugAsync();
+                return Ok(allPatients);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("sequence-info")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> GetSequenceInfo()
+        {
+            try
+            {
+                var result = await _service.GetPatientSequenceInfoAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("reset-auto-increment")]
+        [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+        public async Task<IActionResult> ResetAutoIncrement()
+        {
+            try
+            {
+                var result = await _service.ResetPatientAutoIncrementAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
             }
         }
     }

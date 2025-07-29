@@ -58,7 +58,7 @@ public class ApplicationDBContext : DbContext
         {
             entity.ToTable("Appointments");
             entity.HasKey(a => a.Id);
-            entity.Property(a => a.Id).ValueGeneratedNever();
+            entity.Property(a => a.Id).ValueGeneratedOnAdd(); // Thay đổi từ ValueGeneratedNever thành ValueGeneratedOnAdd
             entity.Property(a => a.Name).IsRequired().HasMaxLength(100);
             entity.Property(a => a.Code).IsRequired().HasMaxLength(100);
             entity.Property(a => a.CreateDate).IsRequired();
@@ -888,13 +888,13 @@ public class ApplicationDBContext : DbContext
             entity.Property(a => a.UpdateBy).IsRequired().HasMaxLength(100);
             entity.Property(a => a.CCCD).IsRequired().HasMaxLength(100);
             entity.Property(a => a.Phone).IsRequired().HasMaxLength(100);
-            entity.Property(a => a.ImageURL).IsRequired();
+            entity.Property(a => a.ImageURL).IsRequired(false);
             entity.Property(a => a.Dob).IsRequired();
-            entity.Property(a => a.Allergies).IsRequired().HasMaxLength(100);
-            entity.Property(a => a.InsuranceNumber).IsRequired().HasMaxLength(100);
-            entity.Property(a => a.Address).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Allergies).IsRequired(false).HasMaxLength(100);
+            entity.Property(a => a.InsuranceNumber).IsRequired(false).HasMaxLength(100);
+            entity.Property(a => a.Address).IsRequired(false).HasMaxLength(100);
             entity.Property(p => p.EmergencyContact).IsRequired(false);
-            entity.Property(a => a.BloodType).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.BloodType).IsRequired(false).HasMaxLength(100);
 
             entity.Property(dr => dr.Gender).IsRequired().HasMaxLength(100)
                 .HasConversion(status => (int)status,  // Lưu số nguyên vào database

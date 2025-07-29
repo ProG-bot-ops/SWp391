@@ -2603,9 +2603,26 @@
                 </div>
                 <div class="offcanvas-body">
                     <div class="form-group col-md-12">
-                        <label class="form-label" for="addPhone">Số điện thoại <span class="text-danger">*</span></label>
-                        <input type="tel" class="form-control" id="addPhone" placeholder="Nhập số điện thoại để tìm kiếm bệnh nhân">
-                        <small class="form-text text-muted">Nhập số điện thoại để tìm kiếm bệnh nhân hiện có hoặc tạo mới</small>
+                        <label class="form-label" for="addPhone">Số điện thoại hoặc CCCD <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="addPhone" placeholder="Nhập số điện thoại hoặc CCCD để tìm kiếm bệnh nhân">
+                            <button type="button" class="btn btn-outline-primary" id="searchPatientBtn" onclick="searchPatient()">
+                                <i class="fas fa-search"></i> Tìm kiếm
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Nhập số điện thoại hoặc CCCD để tìm kiếm bệnh nhân hiện có hoặc tạo mới</small>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addCCCD">CCCD <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="addCCCD" placeholder="Nhập số CCCD">
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addPhoneNumber">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="addPhoneNumber" placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addEmergencyContact">Liên hệ khẩn cấp <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="addEmergencyContact" placeholder="Nhập số điện thoại liên hệ khẩn cấp">
                     </div>
                     <div class="form-group col-md-12">
                         <label class="form-label" for="addName">Họ và tên <span class="text-danger">*</span></label>
@@ -2627,9 +2644,9 @@
                                 <label class="form-label" for="addGender">Giới tính</label>
                                 <select class="form-control" id="addGender">
                                     <option value="">Chọn giới tính</option>
-                                    <option value="Male">Nam</option>
-                                    <option value="Female">Nữ</option>
-                                    <option value="Other">Khác</option>
+                                    <option value="0">Nam</option>
+                                    <option value="1">Nữ</option>
+                                    <option value="2">Khác</option>
                                 </select>
                             </div>
                         </div>
@@ -2638,6 +2655,16 @@
                         <label class="form-label" for="addAddress">Địa chỉ</label>
                         <textarea class="form-control" id="addAddress" rows="2" placeholder="Nhập địa chỉ"></textarea>
                     </div>
+                    
+                    <!-- Patient Action Buttons -->
+                    <div class="d-grid gap-2 mb-3">
+                        <button type="button" class="btn btn-success" id="createPatientBtn" onclick="createNewPatientAndUser()">
+                            <i class="fas fa-user-plus"></i> Tạo bệnh nhân mới
+                        </button>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
                     <div class="form-group">
                         <label class="form-label" for="addClinic">Chọn phòng khám <span class="text-danger">*</span></label>
                         <select class="form-control select2-basic-single" id="addClinic">
@@ -3084,13 +3111,9 @@
                                     </div>
                                 </div>
                             </div>
-
                             <!-- Menu color end here -->
-
                             <hr class="hr-horizontal">
-
                             <!-- Menu Style start here -->
-
                             <div>
                                 <h6 class="mt-4 mb-3">Menu Style</h6>
                                 <div class="d-grid gap-3 grid-cols-4 mb-4">
@@ -3288,7 +3311,6 @@
                                 </div>
                             </div>
                             <!-- Navbar style end here -->
-
                             <hr class="hr-horizontal">
                             <!-- Card style start here -->
                             <div class="mb-4">
@@ -3669,7 +3691,6 @@
 
     <!-- Select2 Script -->
     <script src="./assets/js/plugins/select2.js" defer></script>
-
     <!-- Appointment Dashboard JavaScript Files -->
     <script src="./assets/js/AppointmentDashboardJS/api-endpoints.js"></script>
     <!-- Lodash Utility -->
@@ -3690,7 +3711,6 @@
     <script src="./assets/js/kivicare.js?v=1.4.1" defer></script>
     <script src="./assets/js/kivicare-advance.js?v=1.4.1" defer></script>
     <script src="./assets/js/sidebar.js?v=1.4.1" defer></script>
-
     <!-- Icons -->
    
     <script src="./assets/js/solid-icon-search-filter.js?v=1.4.1" defer></script>
@@ -3709,6 +3729,7 @@
             <script src="./assets/js/AppointmentDashboardJS/appointment-counter.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/appointment-filter.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/edit-appointment.js"></script>
+            <script src="./assets/js/AppointmentDashboardJS/tab-appointment-system.js"></script>
 </body>
 
 

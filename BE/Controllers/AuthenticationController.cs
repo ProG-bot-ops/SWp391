@@ -50,9 +50,11 @@ public class AuthenticationController : ControllerBase
     {
         try
         {
+            Console.WriteLine($"=== PATIENT REGISTRATION REQUEST RECEIVED ===");
+            Console.WriteLine($"Request body: {System.Text.Json.JsonSerializer.Serialize(request)}");
+            
             // Debug logging
             Console.WriteLine($"=== PATIENT REGISTRATION DEBUG ===");
-            Console.WriteLine($"Request received: {System.Text.Json.JsonSerializer.Serialize(request)}");
             Console.WriteLine($"Email: {request.Email}");
             Console.WriteLine($"FullName: {request.FullName}");
             Console.WriteLine($"Code: {request.Code}");
@@ -67,11 +69,11 @@ public class AuthenticationController : ControllerBase
             if (string.IsNullOrEmpty(request.Email))
                 return BadRequest(new { success = false, message = "Email không được để trống" });
                 
+            if (string.IsNullOrEmpty(request.Password))
+                return BadRequest(new { success = false, message = "Mật khẩu không được để trống" });
+                
             if (string.IsNullOrEmpty(request.FullName))
                 return BadRequest(new { success = false, message = "Họ tên không được để trống" });
-                
-            if (string.IsNullOrEmpty(request.Code))
-                return BadRequest(new { success = false, message = "Mã bệnh nhân không được để trống" });
                 
             if (string.IsNullOrEmpty(request.CCCD))
                 return BadRequest(new { success = false, message = "CCCD không được để trống" });
@@ -85,7 +87,10 @@ public class AuthenticationController : ControllerBase
             if (string.IsNullOrEmpty(request.Address))
                 return BadRequest(new { success = false, message = "Địa chỉ không được để trống" });
             
+            Console.WriteLine($"=== CALLING SERVICE ===");
             var response = await _service.RegisterPatientAsync(request);
+            Console.WriteLine($"=== SERVICE RESPONSE ===");
+            Console.WriteLine($"Response: {System.Text.Json.JsonSerializer.Serialize(response)}");
             return Ok(response);
         }
         catch (Exception ex)
@@ -100,6 +105,41 @@ public class AuthenticationController : ControllerBase
                 message = "Lỗi khi đăng ký tài khoản bệnh nhân", 
                 error = ex.Message 
             });
+        }
+    }
+
+    [HttpGet("test")]
+    [AllowAnonymous]
+    public IActionResult Test()
+    {
+        return Ok(new { message = "Authentication controller is working", timestamp = DateTime.Now });
+    }
+
+    [HttpPost("test-login")]
+    [AllowAnonymous]
+    public IActionResult TestLogin([FromBody] LoginRequestDTO request)
+    {
+        try
+        {
+            Console.WriteLine($"Test login request received: Email={request.Email}, UserType={request.UserType}");
+            
+            // Kiểm tra dữ liệu đầu vào
+            if (string.IsNullOrEmpty(request.Email))
+                return BadRequest(new { success = false, message = "Email is required" });
+                
+            if (string.IsNullOrEmpty(request.Password))
+                return BadRequest(new { success = false, message = "Password is required" });
+            
+            return Ok(new { 
+                success = true, 
+                message = "Test login request received successfully",
+                data = new { email = request.Email, userType = request.UserType.ToString() }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Test login error: {ex.Message}");
+            return BadRequest(new { success = false, message = ex.Message });
         }
     }
     [HttpPost("register/nurse")]

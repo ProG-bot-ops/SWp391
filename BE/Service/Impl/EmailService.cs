@@ -231,4 +231,79 @@ public class EmailService : IEmailService
             throw new Exception($"Lỗi gửi email nhắc nhở: {ex.Message}");
         }
     }
+
+    public async Task SendNewPatientPasswordEmailAsync(string toEmail, string patientName, string password)
+    {
+        var smtpSettings = _configuration.GetSection("SmtpSettings");
+        var fromEmail = smtpSettings["FromEmail"];
+        var host = smtpSettings["Host"];
+        var port = int.Parse(smtpSettings["Port"]);
+        var username = smtpSettings["Username"];
+        var password_smtp = smtpSettings["Password"];
+
+        using var client = new SmtpClient
+        {
+            Host = host,
+            Port = port,
+            EnableSsl = true,
+            DeliveryMethod = SmtpDeliveryMethod.Network,
+            UseDefaultCredentials = false,
+            Credentials = new NetworkCredential(username, password_smtp)
+        };
+
+        var mailMessage = new MailMessage
+        {
+            From = new MailAddress(fromEmail, "Phòng khám G-Care"),
+            Subject = "Thông tin tài khoản bệnh nhân mới",
+            IsBodyHtml = true,
+            Body = $@"
+            <div style=""font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;"">
+                <div style=""text-align: center; background-color: #4CAF50; color: white; padding: 20px; border-radius: 8px 8px 0 0;"">
+                    <h1 style=""margin: 0;"">🎉 Chào mừng đến với G-Care!</h1>
+                </div>
+                <div style=""padding: 20px; background-color: #f9f9f9;"">
+                    <h2 style=""color: #333;"">Xin chào {patientName},</h2>
+                    <p style=""color: #666; line-height: 1.6;"">Tài khoản bệnh nhân của bạn đã được tạo thành công tại Phòng khám G-Care. Dưới đây là thông tin đăng nhập:</p>
+                    
+                    <div style=""background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #4CAF50;"">
+                        <h3 style=""color: #4CAF50; margin-top: 0;"">🔐 Thông tin đăng nhập</h3>
+                        <table style=""width: 100%; border-collapse: collapse;"">
+                            <tr><td style=""padding: 8px 0; font-weight: bold; color: #333;"">Email:</td><td style=""padding: 8px 0; color: #666;"">{toEmail}</td></tr>
+                            <tr><td style=""padding: 8px 0; font-weight: bold; color: #333;"">Mật khẩu:</td><td style=""padding: 8px 0; color: #666; font-family: monospace; background-color: #f5f5f5; padding: 5px; border-radius: 3px;"">{password}</td></tr>
+                        </table>
+                    </div>
+                    
+                    <div style=""background-color: #e8f5e8; border: 1px solid #4CAF50; border-radius: 5px; padding: 15px; margin: 20px 0;"">
+                        <h4 style=""color: #2e7d32; margin-top: 0;"">💡 Hướng dẫn sử dụng:</h4>
+                        <ol style=""color: #2e7d32; margin: 10px 0; padding-left: 20px;"">
+                            <li>Đăng nhập vào hệ thống bằng email và mật khẩu trên</li>
+                            <li>Đổi mật khẩu sau lần đăng nhập đầu tiên</li>
+                            <li>Sử dụng các tính năng đặt lịch hẹn, xem lịch sử khám bệnh</li>
+                        </ol>
+                    </div>
+                    
+                    <div style=""background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin: 20px 0;"">
+                        <h4 style=""color: #856404; margin-top: 0;"">⚠️ Lưu ý bảo mật:</h4>
+                        <p style=""color: #856404; margin: 10px 0;"">Vui lòng không chia sẻ mật khẩu với người khác và đổi mật khẩu ngay sau khi đăng nhập lần đầu.</p>
+                    </div>
+                    
+                    <p style=""color: #666; line-height: 1.6;"">Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với chúng tôi qua email nguyenducgiangqp@gmail.com hoặc số điện thoại 0862502458.</p>
+                    
+                    <p style=""color: #666; line-height: 1.6;"">Trân trọng,<br><strong>Phòng khám G-Care</strong></p>
+                </div>
+                <div style=""text-align: center; background-color: #f8f9fa; padding: 15px; border-radius: 0 0 8px 8px; color: #666; font-size: 12px;"">
+                </div>
+            </div>"
+        };
+
+        mailMessage.To.Add(toEmail);
+        try
+        {
+            await client.SendMailAsync(mailMessage);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Lỗi gửi email mật khẩu: {ex.Message}");
+        }
+    }
 }
