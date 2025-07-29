@@ -42,13 +42,24 @@ class TimeSlotIntegration {
         // Listen for date selection changes
         window.addEventListener('customCalendarDateSelected', (event) => {
             if (event.detail && event.detail.date) {
+                console.log('[customCalendarDateSelected] Event detail:', event.detail);
+                console.log('[customCalendarDateSelected] Date type:', typeof event.detail.date);
+                console.log('[customCalendarDateSelected] Date value:', event.detail.date);
+                
                 this.selectedDate = event.detail.date;
+                
+                console.log('[customCalendarDateSelected] After setting selectedDate:', {
+                    selectedDate: this.selectedDate,
+                    isDate: this.selectedDate instanceof Date,
+                    isValid: this.selectedDate instanceof Date && !isNaN(this.selectedDate)
+                });
                 
                 // Lưu lại ngày vào sessionStorage
                 if (this.selectedDate instanceof Date && !isNaN(this.selectedDate)) {
                     const d = this.selectedDate;
                     const dateStr = `${d.getDate().toString().padStart(2,0)}/${(d.getMonth()+1).toString().padStart(2,0)}/${d.getFullYear()}`;
                     sessionStorage.setItem('selectedDate', dateStr);
+                    console.log('[customCalendarDateSelected] Saved to sessionStorage:', dateStr);
                 }
                 
                 // Sử dụng debounced update
@@ -108,14 +119,28 @@ class TimeSlotIntegration {
             const currentTime = today.getTime();
             const currentHour = today.getHours();
             
+            // Chỉ kiểm tra thời gian nếu đang xem ngày hôm nay
+            const selectedDate = sessionStorage.getItem('selectedDate');
+            let isToday = false;
+            
+            if (selectedDate) {
+                // Parse date từ DD/MM/YYYY
+                const [day, month, year] = selectedDate.split('/');
+                const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                isToday = today.toDateString() === parsedDate.toDateString();
+            }
+            
             let shouldRemoveShift = false;
             
-            if (selectedShift === 'morning' && currentHour >= 12) {
-                shouldRemoveShift = true;
-                console.log('[loadSelectedData] Morning shift expired, removing selection');
-            } else if (selectedShift === 'afternoon' && currentHour >= 17) {
-                shouldRemoveShift = true;
-                console.log('[loadSelectedData] Afternoon shift expired, removing selection');
+            // Chỉ kiểm tra thời gian nếu đang xem ngày hôm nay
+            if (isToday) {
+                if (selectedShift === 'morning' && currentHour >= 12) {
+                    shouldRemoveShift = true;
+                    console.log('[loadSelectedData] Morning shift expired, removing selection');
+                } else if (selectedShift === 'afternoon' && currentHour >= 17) {
+                    shouldRemoveShift = true;
+                    console.log('[loadSelectedData] Afternoon shift expired, removing selection');
+                }
             }
             
             if (shouldRemoveShift) {
@@ -126,10 +151,10 @@ class TimeSlotIntegration {
         }
 
         // Nếu có doctor và date, gọi API ngay để kiểm tra availability
-        const selectedDate = sessionStorage.getItem('selectedDate');
-        if (this.selectedDoctor && selectedDate) {
+        const storedDate = sessionStorage.getItem('selectedDate');
+        if (this.selectedDoctor && storedDate) {
             // Parse date từ DD/MM/YYYY
-            const [day, month, year] = selectedDate.split('/');
+            const [day, month, year] = storedDate.split('/');
             this.selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
             
             // Kiểm tra xem có phải ngày hôm nay không
@@ -151,22 +176,36 @@ class TimeSlotIntegration {
         // Force check nếu đang xem ngày hôm nay
         const today = new Date();
         const currentHour = today.getHours();
-        if (currentHour >= 12) {
-            console.log('[loadSelectedData] Current time is after 12:00, morning shift should be locked');
-            // Bỏ chọn ca sáng nếu đã quá giờ
-            if (sessionStorage.getItem('selectedShift') === 'morning') {
-                sessionStorage.removeItem('selectedShift');
-                sessionStorage.removeItem('selectedTime');
-                console.log('[loadSelectedData] Removed morning shift selection (expired)');
-            }
+        
+        // Chỉ kiểm tra nếu đang xem ngày hôm nay
+        const storedDateForCheck = sessionStorage.getItem('selectedDate');
+        let isToday = false;
+        
+        if (storedDateForCheck) {
+            // Parse date từ DD/MM/YYYY
+            const [day, month, year] = storedDateForCheck.split('/');
+            const parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            isToday = today.toDateString() === parsedDate.toDateString();
         }
-        if (currentHour >= 17) {
-            console.log('[loadSelectedData] Current time is after 17:00, afternoon shift should be locked');
-            // Bỏ chọn ca chiều nếu đã quá giờ
-            if (sessionStorage.getItem('selectedShift') === 'afternoon') {
-                sessionStorage.removeItem('selectedShift');
-                sessionStorage.removeItem('selectedTime');
-                console.log('[loadSelectedData] Removed afternoon shift selection (expired)');
+        
+        if (isToday) {
+            if (currentHour >= 12) {
+                console.log('[loadSelectedData] Current time is after 12:00, morning shift should be locked');
+                // Bỏ chọn ca sáng nếu đã quá giờ
+                if (sessionStorage.getItem('selectedShift') === 'morning') {
+                    sessionStorage.removeItem('selectedShift');
+                    sessionStorage.removeItem('selectedTime');
+                    console.log('[loadSelectedData] Removed morning shift selection (expired)');
+                }
+            }
+            if (currentHour >= 17) {
+                console.log('[loadSelectedData] Current time is after 17:00, afternoon shift should be locked');
+                // Bỏ chọn ca chiều nếu đã quá giờ
+                if (sessionStorage.getItem('selectedShift') === 'afternoon') {
+                    sessionStorage.removeItem('selectedShift');
+                    sessionStorage.removeItem('selectedTime');
+                    console.log('[loadSelectedData] Removed afternoon shift selection (expired)');
+                }
             }
         }
 
@@ -196,6 +235,17 @@ class TimeSlotIntegration {
             const day = String(this.selectedDate.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
 
+            // Debug: Kiểm tra ngày được gửi
+            const today = new Date();
+            const isToday = today.toDateString() === this.selectedDate.toDateString();
+            console.log('[updateTimeSlots] Debug info:', {
+                selectedDate: this.selectedDate,
+                dateStr: dateStr,
+                today: today,
+                isToday: isToday,
+                currentHour: today.getHours()
+            });
+
             // Tạo URL với timeout
             const url = `${this.apiBaseUrl}/api/Appointment/available-time-slots?doctorId=${this.selectedDoctor.id}&date=${dateStr}`;
             console.log('[updateTimeSlots] API URL:', url);
@@ -221,13 +271,71 @@ class TimeSlotIntegration {
 
             const result = await response.json();
             console.log('[updateTimeSlots] API Response:', result);
+            console.log('[updateTimeSlots] Full API Response structure:', JSON.stringify(result, null, 2));
 
             if (result.success) {
                 this.availableTimeSlots = result.data || {};
                 console.log('[updateTimeSlots] Available slots data:', this.availableTimeSlots);
+                
+                // Debug: Kiểm tra dữ liệu từ API
+                if (this.availableTimeSlots.morning) {
+                    console.log('[updateTimeSlots] Morning shift data:', {
+                        available: this.availableTimeSlots.morning.available,
+                        isPastTime: this.availableTimeSlots.morning.isPastTime,
+                        doctorWorks: this.availableTimeSlots.morning.doctorWorks,
+                        count: this.availableTimeSlots.morning.count
+                    });
+                }
+                if (this.availableTimeSlots.afternoon) {
+                    console.log('[updateTimeSlots] Afternoon shift data:', {
+                        available: this.availableTimeSlots.afternoon.available,
+                        isPastTime: this.availableTimeSlots.afternoon.isPastTime,
+                        doctorWorks: this.availableTimeSlots.afternoon.doctorWorks,
+                        count: this.availableTimeSlots.afternoon.count
+                    });
+                }
+                
+                // Cập nhật UI ngay lập tức
                 this.updateTimeSlotDisplay();
+                
+                // Kiểm tra xem bác sĩ có lịch làm việc không
+                const morningWorks = this.availableTimeSlots.morning?.doctorWorks;
+                const afternoonWorks = this.availableTimeSlots.afternoon?.doctorWorks;
+                
+                console.log('[updateTimeSlots] Checking doctor schedule:', {
+                    morningWorks: morningWorks,
+                    afternoonWorks: afternoonWorks,
+                    isToday: isToday,
+                    shouldCreateSchedule: (!morningWorks || !afternoonWorks) && !isToday,
+                    hasMorningData: !!this.availableTimeSlots.morning,
+                    hasAfternoonData: !!this.availableTimeSlots.afternoon
+                });
+                
+                // Nếu bác sĩ chưa có lịch làm việc hoặc không có dữ liệu, tự động tạo
+                if (((!morningWorks || !afternoonWorks) || (!this.availableTimeSlots.morning || !this.availableTimeSlots.afternoon)) && !isToday) {
+                    console.log('[updateTimeSlots] Doctor has no working schedule or missing data, creating sample shifts...');
+                    
+                    // Hiển thị thông báo cho người dùng
+                    this.showCreatingScheduleMessage();
+                    
+                    await this.createSampleShifts(year, parseInt(month));
+                    
+                    console.log('[updateTimeSlots] Re-fetching time slots after creating shifts...');
+                    await this.updateTimeSlots(); // Re-fetch after creating
+                    return;
+                }
+                
+                // Fallback: Nếu không có dữ liệu gì cả, thử tạo lịch
+                if (!this.availableTimeSlots || (!this.availableTimeSlots.morning && !this.availableTimeSlots.afternoon)) {
+                    console.log('[updateTimeSlots] No data available, creating sample shifts as fallback...');
+                    this.showCreatingScheduleMessage();
+                    await this.createSampleShifts(year, parseInt(month));
+                    console.log('[updateTimeSlots] Re-fetching time slots after creating shifts...');
+                    await this.updateTimeSlots();
+                    return;
+                }
             } else {
-                console.error('[updateTimeSlots] API returned success=false:', result.message);
+                console.error('[updateTimeSlots] API returned error:', result.message);
                 this.showErrorState();
             }
         } catch (error) {
@@ -239,6 +347,66 @@ class TimeSlotIntegration {
             this.showErrorState();
             }
         }
+    }
+
+    // Thêm method để tạo sample shifts
+    async createSampleShifts(year, month) {
+        try {
+            console.log('[createSampleShifts] Creating shifts for doctor', this.selectedDoctor.id, 'in', month, year);
+            
+            const url = `${this.apiBaseUrl}/api/Appointment/create-sample-shifts/${this.selectedDoctor.id}?year=${year}&month=${month}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                console.error('[createSampleShifts] HTTP error! status:', response.status);
+                return false;
+            }
+
+            const result = await response.json();
+            console.log('[createSampleShifts] Response:', result);
+
+            if (result.success) {
+                console.log('[createSampleShifts] Successfully created shifts:', result.message);
+                return true;
+            } else {
+                console.error('[createSampleShifts] Failed to create shifts:', result.message);
+                return false;
+            }
+        } catch (error) {
+            console.error('[createSampleShifts] Exception:', error);
+            return false;
+        }
+    }
+
+    showCreatingScheduleMessage() {
+        const timeButtons = document.querySelectorAll('.time-btn.shift-btn');
+        timeButtons.forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'wait';
+            btn.title = 'Đang tạo lịch làm việc cho bác sĩ...';
+            
+            // Tìm và cập nhật nội dung bên trong button
+            const textDiv = btn.querySelector('.fw-bold.fs-6');
+            if (textDiv) {
+                const shift = btn.getAttribute('data-shift');
+                if (shift === 'morning') {
+                    textDiv.textContent = 'CA SÁNG (07:00 - 12:00)';
+                } else if (shift === 'afternoon') {
+                    textDiv.textContent = 'CA CHIỀU (13:00 - 17:00)';
+                }
+            }
+            
+            // Cập nhật slot count thành "Đang tạo lịch..."
+            const slotCountDiv = btn.querySelector('.slot-count');
+            if (slotCountDiv) {
+                slotCountDiv.textContent = 'Đang tạo lịch làm việc...';
+                slotCountDiv.style.color = '#3b82f6';
+            }
+        });
     }
 
     showLoadingState() {
@@ -300,148 +468,130 @@ class TimeSlotIntegration {
     }
 
     updateTimeSlotDisplay() {
-        // Cache DOM elements để tăng performance
-        const timeButtons = document.querySelectorAll('.time-btn.shift-btn');
-        if (!timeButtons || timeButtons.length < 2) return;
+        console.log('[updateTimeSlotDisplay] Starting update...');
+        console.log('[updateTimeSlotDisplay] Available time slots:', this.availableTimeSlots);
+        
+        const morningBtn = document.querySelector('.time-btn[data-shift="morning"]');
+        const afternoonBtn = document.querySelector('.time-btn[data-shift="afternoon"]');
 
-        console.log('[updateTimeSlotDisplay] Available slots:', this.availableTimeSlots);
+        if (!morningBtn || !afternoonBtn) {
+            console.error('[updateTimeSlotDisplay] Could not find shift buttons');
+            return;
+        }
 
-        // Batch DOM updates để tránh reflow
-        const updates = [];
+        // Update morning shift
+        this.updateShiftButton(morningBtn, 'morning');
+        
+        // Update afternoon shift
+        this.updateShiftButton(afternoonBtn, 'afternoon');
+        
+        console.log('[updateTimeSlotDisplay] Update completed');
+    }
 
-        timeButtons.forEach(btn => {
-            const shift = btn.getAttribute('data-shift');
-            const textDiv = btn.querySelector('.fw-bold.fs-6');
+    updateShiftButton(button, shift) {
+        console.log(`[updateShiftButton] Updating ${shift} button...`);
+        
+        // Xác định trạng thái available và lý do
+        let isAvailable = true;
+        let reason = '';
+        
+        // Kiểm tra xem có phải ngày trong tương lai không
+        const today = new Date();
+        const isFutureDate = this.selectedDate && this.selectedDate > today;
+        
+        console.log(`[updateShiftButton] Debug info for ${shift}:`, {
+            today: today.toISOString(),
+            currentSelectedDate: this.selectedDate ? this.selectedDate.toISOString() : 'null',
+            isFutureDate: isFutureDate,
+            availableTimeSlots: this.availableTimeSlots
+        });
+        
+        if (this.availableTimeSlots) {
+            const shiftData = this.availableTimeSlots[shift];
+            console.log(`[updateShiftButton] ${shift} data:`, shiftData);
             
-            // Khôi phục nội dung gốc
-            if (textDiv) {
-                if (shift === 'morning') {
-                    textDiv.textContent = 'CA SÁNG (07:00 - 12:00)';
-                } else if (shift === 'afternoon') {
-                    textDiv.textContent = 'CA CHIỀU (13:00 - 17:00)';
-                }
-            }
-
-            // Cập nhật số lượng slot đã đặt
-            const slotCountDiv = btn.querySelector('.slot-count');
-            if (slotCountDiv) {
-                let count = 0;
-                if (this.availableTimeSlots) {
-                    if (shift === 'morning' && this.availableTimeSlots.morning) {
-                        count = this.availableTimeSlots.morning.count || 0;
-                    } else if (shift === 'afternoon' && this.availableTimeSlots.afternoon) {
-                        count = this.availableTimeSlots.afternoon.count || 0;
-                    }
-                }
-                // Lấy số slot tối đa từ API một cách linh hoạt
-                let maxSlots = 10; // Giá trị mặc định
-                if (this.availableTimeSlots) {
-                    if (shift === 'morning' && this.availableTimeSlots.morning) {
-                        // Nếu API trả về maxSlots, sử dụng nó
-                        maxSlots = this.availableTimeSlots.morning.maxSlots || 10;
-                    } else if (shift === 'afternoon' && this.availableTimeSlots.afternoon) {
-                        // Nếu API trả về maxSlots, sử dụng nó
-                        maxSlots = this.availableTimeSlots.afternoon.maxSlots || 10;
-                    }
-                }
-                slotCountDiv.textContent = `Đã đặt: ${count}/${maxSlots}`;
+            if (shiftData) {
+                // Sử dụng available từ API
+                isAvailable = shiftData.available === true;
                 
-                // Thay đổi màu sắc dựa trên số lượng (linh hoạt theo maxSlots)
-                const threshold80 = Math.ceil(maxSlots * 0.8); // 80% của maxSlots
-                const threshold60 = Math.ceil(maxSlots * 0.6); // 60% của maxSlots
+                console.log(`[updateShiftButton] ${shift} - isAvailable:`, isAvailable);
                 
-                if (count >= threshold80) {
-                    slotCountDiv.style.color = '#dc3545'; // Đỏ khi gần đầy (>=80%)
-                } else if (count >= threshold60) {
-                    slotCountDiv.style.color = '#ffc107'; // Vàng khi trung bình (60-79%)
+                if (!isAvailable) {
+                    if (shiftData.isPastTime) {
+                        reason = shift === 'morning' ? 'Ca sáng đã kết thúc (sau 12:00)' : 'Ca chiều đã kết thúc (sau 17:00)';
+                        console.log(`[updateShiftButton] ${shift} disabled because isPastTime = true`);
+                    } else if (!shiftData.doctorWorks) {
+                        reason = `Bác sĩ chưa có lịch làm việc ca ${shift === 'morning' ? 'sáng' : 'chiều'} cho ngày này`;
+                        console.log(`[updateShiftButton] ${shift} disabled because doctorWorks = false`);
+                    } else {
+                        reason = `Ca ${shift === 'morning' ? 'sáng' : 'chiều'} đã đầy`;
+                        console.log(`[updateShiftButton] ${shift} disabled because full`);
+                    }
                 } else {
-                    slotCountDiv.style.color = '#6c757d'; // Xám khi còn nhiều (<60%)
+                    console.log(`[updateShiftButton] ${shift} enabled`);
                 }
+            } else {
+                console.log(`[updateShiftButton] No data for ${shift}`);
+                isAvailable = false;
+                reason = `Không có dữ liệu cho ca ${shift === 'morning' ? 'sáng' : 'chiều'}`;
             }
-
-            // Xác định trạng thái available và lý do
-            let isAvailable = true;
-            let reason = '';
-            if (this.availableTimeSlots) {
-                if (shift === 'morning' && this.availableTimeSlots.morning) {
-                    isAvailable = this.availableTimeSlots.morning.available === true;
-                    console.log('[updateTimeSlotDisplay] Morning shift:', {
-                        available: isAvailable,
-                        isPastTime: this.availableTimeSlots.morning.isPastTime,
-                        doctorWorks: this.availableTimeSlots.morning.doctorWorks
-                    });
-                    if (!isAvailable) {
-                        if (this.availableTimeSlots.morning.isPastTime) {
-                            reason = 'Ca sáng đã kết thúc (sau 12:00)';
-                        } else if (!this.availableTimeSlots.morning.doctorWorks) {
-                            reason = 'Bác sĩ không làm việc ca sáng';
-                        } else {
-                            reason = 'Ca sáng đã đầy';
-                        }
-                    }
-                } else if (shift === 'afternoon' && this.availableTimeSlots.afternoon) {
-                    isAvailable = this.availableTimeSlots.afternoon.available === true;
-                    console.log('[updateTimeSlotDisplay] Afternoon shift:', {
-                        available: isAvailable,
-                        isPastTime: this.availableTimeSlots.afternoon.isPastTime,
-                        doctorWorks: this.availableTimeSlots.afternoon.doctorWorks
-                    });
-                    if (!isAvailable) {
-                        if (this.availableTimeSlots.afternoon.isPastTime) {
-                            reason = 'Ca chiều đã kết thúc (sau 17:00)';
-                        } else if (!this.availableTimeSlots.afternoon.doctorWorks) {
-                            reason = 'Bác sĩ không làm việc ca chiều';
-                } else {
-                            reason = 'Ca chiều đã đầy';
-                        }
-                    }
-                }
+        } else {
+            console.log('[updateShiftButton] No availableTimeSlots data');
+            isAvailable = false;
+            reason = 'Không có dữ liệu từ server';
+        }
+        
+        // Update button state
+        if (isAvailable) {
+            button.classList.remove('disabled');
+            button.removeAttribute('disabled');
+            button.style.opacity = '1';
+            button.style.cursor = 'pointer';
+            console.log(`[updateShiftButton] ${shift} button ENABLED`);
+        } else {
+            button.classList.add('disabled');
+            button.setAttribute('disabled', 'disabled');
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+            console.log(`[updateShiftButton] ${shift} button DISABLED - Reason: ${reason}`);
+        }
+        
+        // Update tooltip
+        if (reason) {
+            button.title = reason;
+        } else {
+            button.title = '';
+        }
+        
+        // Update count display
+        const countElement = button.querySelector('.slot-count');
+        if (countElement && this.availableTimeSlots && this.availableTimeSlots[shift]) {
+            const count = this.availableTimeSlots[shift].count || 0;
+            const maxSlots = this.availableTimeSlots[shift].maxSlots || 10;
+            countElement.textContent = `Đã đặt: ${count}/${maxSlots}`;
+            
+            // Thay đổi màu sắc dựa trên số lượng
+            const threshold80 = Math.ceil(maxSlots * 0.8);
+            const threshold60 = Math.ceil(maxSlots * 0.6);
+            
+            if (count >= threshold80) {
+                countElement.style.color = '#dc3545'; // Đỏ khi gần đầy
+            } else if (count >= threshold60) {
+                countElement.style.color = '#ffc107'; // Vàng khi trung bình
+            } else {
+                countElement.style.color = '#6c757d'; // Xám khi còn nhiều
             }
-
-            // Chuẩn bị updates
-            updates.push({
-                button: btn,
-                available: isAvailable,
-                reason: reason
-            });
-        });
-
-        // Apply tất cả updates cùng lúc
-        requestAnimationFrame(() => {
-            updates.forEach(({ button, available, reason }) => {
-                button.disabled = !available;
-                button.classList.toggle('disabled', !available);
-                button.style.opacity = available ? '1' : '0.5';
-                button.style.backgroundColor = available ? '#f8f9fa' : '#f3f4f6';
-                button.style.color = available ? '#212529' : '#6b7280';
-                button.style.cursor = available ? 'pointer' : 'not-allowed';
-                button.title = available ? 'Click để chọn ca này' : reason || 'Ca này không khả dụng';
-                
-                // Nếu ca không available và đang được chọn, bỏ chọn
-                if (!available && button.classList.contains('selected')) {
-                    button.classList.remove('selected', 'active');
-                    button.style.backgroundColor = '#f3f4f6';
-                    button.style.color = '#6b7280';
-                    console.log('[updateTimeSlotDisplay] Auto-deselected unavailable shift:', button.getAttribute('data-shift'));
-                    
-                    // Xóa khỏi sessionStorage
-                    const shift = button.getAttribute('data-shift');
-                    if (shift === sessionStorage.getItem('selectedShift')) {
-                        sessionStorage.removeItem('selectedShift');
-                        sessionStorage.removeItem('selectedTime');
-                        console.log('[updateTimeSlotDisplay] Removed selected shift from sessionStorage');
-                    }
-                }
-                
-                console.log('[updateTimeSlotDisplay] Button update:', {
-                    shift: button.getAttribute('data-shift'),
-                    available: available,
-                    reason: reason,
-                    disabled: button.disabled,
-                    selected: button.classList.contains('selected')
-                });
-            });
-        });
+        }
+        
+        // Update button text
+        const textDiv = button.querySelector('.fw-bold.fs-6');
+        if (textDiv) {
+            if (shift === 'morning') {
+                textDiv.textContent = 'CA SÁNG (07:00 - 12:00)';
+            } else if (shift === 'afternoon') {
+                textDiv.textContent = 'CA CHIỀU (13:00 - 17:00)';
+            }
+        }
     }
 
     handleTimeSlotClick(button) {
@@ -450,20 +600,26 @@ class TimeSlotIntegration {
             return; // Don't allow selection of booked slots
         }
 
-        // Kiểm tra thời gian hiện tại
+        // Kiểm tra thời gian hiện tại CHỈ KHI đang chọn ngày hôm nay
         const shift = button.getAttribute('data-shift');
-        const currentHour = new Date().getHours();
+        const today = new Date();
+        const selectedDate = this.selectedDate;
         
-        if (shift === 'morning' && currentHour >= 12) {
-            console.log('[handleTimeSlotClick] Morning shift expired (current hour:', currentHour, ')');
-            alert('Ca sáng đã kết thúc (sau 12:00). Vui lòng chọn ca chiều.');
-            return;
-        }
-        
-        if (shift === 'afternoon' && currentHour >= 17) {
-            console.log('[handleTimeSlotClick] Afternoon shift expired (current hour:', currentHour, ')');
-            alert('Ca chiều đã kết thúc (sau 17:00). Vui lòng chọn ngày khác.');
-            return;
+        // Chỉ kiểm tra thời gian nếu đang chọn ngày hôm nay
+        if (selectedDate && today.toDateString() === selectedDate.toDateString()) {
+            const currentHour = today.getHours();
+            
+            if (shift === 'morning' && currentHour >= 12) {
+                console.log('[handleTimeSlotClick] Morning shift expired (current hour:', currentHour, ')');
+                alert('Ca sáng đã kết thúc (sau 12:00). Vui lòng chọn ca chiều.');
+                return;
+            }
+            
+            if (shift === 'afternoon' && currentHour >= 17) {
+                console.log('[handleTimeSlotClick] Afternoon shift expired (current hour:', currentHour, ')');
+                alert('Ca chiều đã kết thúc (sau 17:00). Vui lòng chọn ngày khác.');
+                return;
+            }
         }
 
         // Kiểm tra xem ca này có available không

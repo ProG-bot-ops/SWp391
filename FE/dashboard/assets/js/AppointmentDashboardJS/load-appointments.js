@@ -357,6 +357,14 @@
 
                 console.log(`✅ Đã tải ${appointments.length} cuộc hẹn thành công`);
 
+                // Phát sự kiện để appointment-counter.js có thể đồng bộ
+                window.dispatchEvent(new CustomEvent('appointmentsLoaded', {
+                    detail: { 
+                        appointments: appState.appointments,
+                        timestamp: new Date()
+                    }
+                }));
+
             } catch (error) {
                 console.error('❌ Lỗi tải dữ liệu:', error);
                 appState.retryCount++;
@@ -595,6 +603,17 @@
         updateCounter() {
             console.log('🔄 Updating counter...');
             
+            // Kiểm tra xem có AppointmentCounter từ appointment-counter.js không
+            if (window.AppointmentCounter && typeof window.AppointmentCounter.updateDisplay === 'function') {
+                console.log('✅ Sử dụng AppointmentCounter từ appointment-counter.js');
+                const counts = window.AppointmentCounter.getCounts();
+                window.AppointmentCounter.updateDisplay(counts, 'today');
+                return;
+            }
+            
+            // Fallback: tự tính toán nếu không có AppointmentCounter
+            console.log('⚠️ Không có AppointmentCounter, tự tính toán...');
+            
             // Đếm tất cả appointments
             const totalCount = appState.appointments.length;
             console.log('📊 Total appointments count:', totalCount);
@@ -615,18 +634,44 @@
             }).length;
 
             console.log('📊 Today appointments count:', todayCount);
-            console.log('📊 All appointments:', appState.appointments);
 
-            // Cập nhật counter trong title - hiển thị tổng số appointments
-            const counterElement = document.querySelector('[data-counter="today"]');
-            console.log('🔍 Looking for counter element with [data-counter="today"]');
-            console.log('🔍 Counter element found:', !!counterElement);
+            // Tìm element hiển thị số cuộc hẹn - ưu tiên id="appointment-count"
+            let counterElement = document.getElementById('appointment-count');
+            
+            // Nếu không tìm thấy, thử tìm bằng data-counter
+            if (!counterElement) {
+                counterElement = document.querySelector('[data-counter="today"]');
+            }
+            
+            // Nếu vẫn không tìm thấy, thử tìm bằng class hoặc text content
+            if (!counterElement) {
+                const possibleElements = document.querySelectorAll('p, span, div');
+                counterElement = Array.from(possibleElements).find(el => 
+                    el.textContent && el.textContent.includes('cuộc hẹn') && 
+                    (el.id === 'appointment-count' || el.classList.contains('counter'))
+                );
+            }
             
             if (counterElement) {
+                console.log('🔍 Counter element found:', counterElement);
                 console.log('🔍 Counter element text before update:', counterElement.textContent);
-                counterElement.textContent = `${totalCount} cuộc hẹn đã lên lịch`;
+                
+                // Hiển thị số cuộc hẹn hôm nay
+                counterElement.textContent = `${todayCount} cuộc hẹn đã lên lịch hôm nay`;
+                
+                // Cập nhật CSS class
+                if (todayCount === 0) {
+                    counterElement.className = 'mb-0 text-muted';
+                } else if (todayCount <= 5) {
+                    counterElement.className = 'mb-0 text-success';
+                } else if (todayCount <= 10) {
+                    counterElement.className = 'mb-0 text-warning';
+                } else {
+                    counterElement.className = 'mb-0 text-danger';
+                }
+                
                 console.log('🔍 Counter element text after update:', counterElement.textContent);
-                console.log('✅ Counter updated to show total appointments');
+                console.log('✅ Counter updated successfully');
             } else {
                 console.warn('⚠️ Counter element not found');
                 // Tìm tất cả elements có thể là counter

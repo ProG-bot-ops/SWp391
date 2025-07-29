@@ -58,6 +58,9 @@
     <!-- Customizer Css -->
     <link rel="stylesheet" href="./assets/css/customizer.min.css?v=1.4.2" />
 
+    <!-- Patient Appointment CSS -->
+    <link rel="stylesheet" href="./assets/css/patientAppointmentCSS/patient-appointment.css" />
+
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1775,8 +1778,21 @@
                         <div class="card-header">
                             <div class="row align-items-center gy-3">
                                 <div class="col-md-4 col-lg-6 text-md-start">
-                                    <h4>Quản lí cuộc hẹn</h4>
-                                    <p class="mb-0" id="appointment-count">Đang tải...</p>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <h4 class="mb-0">Quản lí cuộc hẹn</h4>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="appointmentFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-filter me-1"></i>
+                                                Lọc cuộc hẹn
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="appointmentFilterDropdown">
+                                                <li><a class="dropdown-item" href="#" onclick="filterAppointments('all')">Tất cả cuộc hẹn</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="filterAppointments('today')">Cuộc hẹn hôm nay</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="filterAppointments('week')">Cuộc hẹn tuần này</a></li>
+                                                <li><a class="dropdown-item" href="#" onclick="filterAppointments('month')">Cuộc hẹn tháng này</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-8 col-lg-6 text-md-end">
                                     <div>
@@ -1801,20 +1817,6 @@
                                                         </span>
                                                     </span>
                                                 </a>
-                                            </li>
-                                            <li>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="appointmentFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="fas fa-filter me-1"></i>
-                                                        Lọc cuộc hẹn
-                                                    </button>
-                                                    <ul class="dropdown-menu" aria-labelledby="appointmentFilterDropdown">
-                                                        <li><a class="dropdown-item" href="#" onclick="filterAppointments('all')">Tất cả cuộc hẹn</a></li>
-                                                        <li><a class="dropdown-item" href="#" onclick="filterAppointments('today')">Cuộc hẹn hôm nay</a></li>
-                                                        <li><a class="dropdown-item" href="#" onclick="filterAppointments('week')">Cuộc hẹn tuần này</a></li>
-                                                        <li><a class="dropdown-item" href="#" onclick="filterAppointments('month')">Cuộc hẹn tháng này</a></li>
-                                                    </ul>
-                                                </div>
                                             </li>
                                             <li class="nav-item" role="presentation">
                                                 <button class="nav-link btn active" type="button" data-bs-toggle="tab"
@@ -2565,20 +2567,20 @@
                     <div class="d-grid d-md-flex gap-3 p-3">
                         <button type="submit" class="btn btn-primary">
                             <span class="btn-inner">
-                                <span class="text d-inline-block align-middle">Update</span>
+                                <span class="text d-inline-block align-middle">Lưu +</span>
                                 <span class="icon d-inline-block align-middle ms-1 ps-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"
                                         fill="none">
                                         <path
                                             d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z"
                                             fill="currentColor" />
-                                                                </svg>
-                                                            </span>
+                                    </svg>
+                                </span>
                             </span>
                         </button>
                         <button class="btn btn-secondary" type="button" data-bs-dismiss="offcanvas">
                             <span class="btn-inner">
-                                <span class="text d-inline-block align-middle">Close</span>
+                                <span class="text d-inline-block align-middle">Đóng +</span>
                                 <span class="icon d-inline-block align-middle ms-1 ps-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"
                                         fill="none">
@@ -2595,49 +2597,89 @@
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAppointmentAdd"
                 aria-labelledby="offcanvasAppointmentAddLabel">
                 <div class="offcanvas-header border-bottom">
-                    <h3 class="offcanvas-title" id="offcanvasAppointmentAddLabel">Add Appointments</h3>
+                    <h3 class="offcanvas-title" id="offcanvasAppointmentAddLabel">Add Cuộc hẹn</h3>
                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"
                         aria-label="Close"></button>
                 </div>
                 <div class="offcanvas-body">
                     <div class="form-group col-md-12">
-                        <label class="form-label" for="addName">Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="addName">
+                        <label class="form-label" for="addPhone">Số điện thoại <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="addPhone" placeholder="Nhập số điện thoại để tìm kiếm bệnh nhân">
+                        <small class="form-text text-muted">Nhập số điện thoại để tìm kiếm bệnh nhân hiện có hoặc tạo mới</small>
                     </div>
-                    <div class="form-group">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <label class="form-label" for="add_profile_image">Profile Image</label>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addName">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="addName" placeholder="Nhập họ và tên">
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addEmail">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="addEmail" placeholder="Nhập email">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="addBirthDate">Ngày sinh</label>
+                                <input type="date" class="form-control" id="addBirthDate">
+                            </div>
                         </div>
-                        <input type="file" class="form-control" id="add_profile_image" accept=".jpeg, .jpg, .png, .gif">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label" for="addGender">Giới tính</label>
+                                <select class="form-control" id="addGender">
+                                    <option value="">Chọn giới tính</option>
+                                    <option value="Male">Nam</option>
+                                    <option value="Female">Nữ</option>
+                                    <option value="Other">Khác</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-group col-md-12">
-                        <label class="form-label" for="add_email">Email <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="add_email">
-                    </div>
-                    <div class="form-group col-md-12">
-                        <label class="form-label" for="add_datetime">Date And Time <span
-                                class="text-danger">*</span></label>
-                        <input type="text" id="add_datetime" class="form-control date_flatpicker flatpickr-input active"
-                            readonly="readonly">
-                    </div>
-                    <div class="form-group col-md-12">
-                        <label class="form-label" for="add_reason">Reason <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="add_reason">
+                        <label class="form-label" for="addAddress">Địa chỉ</label>
+                        <textarea class="form-control" id="addAddress" rows="2" placeholder="Nhập địa chỉ"></textarea>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="add_type_id">Type <span class="text-danger">*</span></label>
-                        <select class="form-control select2-basic-single" id="add_type_id">
-                            <option>Select</option>
-                            <option>New Patient</option>
-                            <option>Old Patient</option>
+                        <label class="form-label" for="addClinic">Chọn phòng khám <span class="text-danger">*</span></label>
+                        <select class="form-control select2-basic-single" id="addClinic">
+                            <option value="">Chọn phòng khám</option>
+                            <!-- Options will be populated by JavaScript -->
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="addDoctor">Chọn bác sĩ <span class="text-danger">*</span></label>
+                        <select class="form-control select2-basic-single" id="addDoctor" disabled>
+                            <option value="">Chọn bác sĩ</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="addService">Chọn dịch vụ <span class="text-danger">*</span></label>
+                        <select class="form-control select2-basic-single" id="addService" disabled>
+                            <option value="">Chọn dịch vụ</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addDate">Ngày tháng năm <span class="text-danger">*</span></label>
+                        <input type="date" id="addDate" class="form-control" min="">
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addShift">Ca khám <span class="text-danger">*</span></label>
+                        <select class="form-control select2-basic-single" id="addShift" disabled>
+                            <option value="">Chọn ca khám</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group col-md-12">
+                        <label class="form-label" for="addNote">Ghi chú</label>
+                        <textarea class="form-control" id="addNote" rows="3" placeholder="Nhập ghi chú (nếu có)"></textarea>
                     </div>
                 </div>
                 <div class="offcanvas-footer border-top">
                     <div class="d-grid d-md-flex gap-3 p-3">
                         <button type="submit" class="btn btn-primary">
                             <span class="btn-inner">
-                                <span class="text d-inline-block align-middle">Save</span>
+                                <span class="text d-inline-block align-middle">Lưu +</span>
                                 <span class="icon d-inline-block align-middle ms-1 ps-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"
                                         fill="none">
@@ -2650,7 +2692,7 @@
                         </button>
                         <button class="btn btn-secondary" type="button" data-bs-dismiss="offcanvas">
                             <span class="btn-inner">
-                                <span class="text d-inline-block align-middle">Close</span>
+                                <span class="text d-inline-block align-middle">Đóng +</span>
                                 <span class="icon d-inline-block align-middle ms-1 ps-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8"
                                         fill="none">
@@ -2936,18 +2978,17 @@
                                             </svg>
                                         </label>
                                     </div>
-                                    <div data-setting="radio">
-                                        <input type="radio" value="color-5" class="btn-check" name="theme_color"
-                                            id="theme-color-5">
-                                        <label class="btn btn-border d-block bg-transparent" for="theme-color-5"
-                                            data-bs-toggle="tooltip" data-bs-placement="top" title="Theme-5"
-                                            data-bs-original-title="Theme-5">
-                                            <svg class="customizer-btn" xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24" width="26" height="26">
-                                                <circle cx="12" cy="12" r="10" fill="#4181b3" />
-                                                <path d="M2,12 a1,1 1 1,0 20,0" fill="#A42E51" />
-                                            </svg>
+                                    <div data-setting="checkbox" class="text-center">
+                                        <input type="checkbox" value="sidebar-soft" class="btn-check"
+                                             name="sidebar_type" id="sidebar-soft">
+                                        <label class="btn btn-border p-0 d-block overflow-hidden" for="sidebar-soft">
+                                            <img src="./assets/images/settings/dark/05.png" alt="boxed"
+                                                class="mode dark-img img-fluid" width="200" height="200" loading="lazy">
+                                            <img src="./assets/images/settings/light/05.png" alt="boxed"
+                                                class="mode light-img img-fluid" width="200" height="200"
+                                                loading="lazy">
                                         </label>
+                                        <span class="mt-2">Soft</span>
                                     </div>
                                 </div>
                             </div>
@@ -3661,6 +3702,7 @@
             <script src="./assets/js/AppointmentDashboardJS/custom-table-vn.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/search-patient.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/add-appointment.js"></script>
+            <script src="./assets/js/AppointmentDashboardJS/test-api.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/simple-debug.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/load-appointments.js"></script>
             <script src="./assets/js/AppointmentDashboardJS/clear-static-table.js"></script>

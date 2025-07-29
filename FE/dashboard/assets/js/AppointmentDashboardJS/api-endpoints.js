@@ -49,7 +49,21 @@
         
         // Patient endpoints
         patients: {
-            search: (term) => `${API_BASE_URL}/api/appointment/patient/search?term=${encodeURIComponent(term)}`
+            search: (term) => `${API_BASE_URL}/api/appointment/patient/search?term=${encodeURIComponent(term)}`,
+            searchByPhone: (phone) => `${API_BASE_URL}/api/patient/search?phone=${encodeURIComponent(phone)}`,
+            create: `${API_BASE_URL}/api/patient/create`,
+            update: (id) => `${API_BASE_URL}/api/patient/update/${id}`,
+            detail: (id) => `${API_BASE_URL}/api/patient/detail/${id}`,
+            list: `${API_BASE_URL}/api/patient/list`
+        },
+        
+        // Auth endpoints
+        auth: {
+            register: `${API_BASE_URL}/api/auth/register`,
+            login: `${API_BASE_URL}/api/auth/login`,
+            sendPasswordEmail: `${API_BASE_URL}/api/auth/send-password-email`,
+            resetPassword: `${API_BASE_URL}/api/auth/reset-password`,
+            changePassword: `${API_BASE_URL}/api/auth/change-password`
         },
         
         // Time slot endpoints

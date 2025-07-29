@@ -1526,9 +1526,17 @@ public class AppointmentController : ControllerBase
             bool isPastMorningShift = isToday && currentTimeOfDay >= new TimeSpan(12, 0, 0); // Sau 12:00
             bool isPastAfternoonShift = isToday && currentTimeOfDay >= new TimeSpan(17, 0, 0); // Sau 17:00
 
+            Console.WriteLine($"[DEBUG] Current time: {currentTime:yyyy-MM-dd HH:mm:ss}");
+            Console.WriteLine($"[DEBUG] Parsed date: {parsedDate:yyyy-MM-dd}");
+            Console.WriteLine($"[DEBUG] Current date: {currentDate:yyyy-MM-dd}");
+            Console.WriteLine($"[DEBUG] Current time of day: {currentTimeOfDay:hh\\:mm}");
             Console.WriteLine($"[DEBUG] Is today: {isToday}");
             Console.WriteLine($"[DEBUG] Is past morning shift: {isPastMorningShift}");
             Console.WriteLine($"[DEBUG] Is past afternoon shift: {isPastAfternoonShift}");
+            Console.WriteLine($"[DEBUG] Date comparison: parsedDate.Date={parsedDate.Date}, currentDate={currentDate}, equal={parsedDate.Date == currentDate}");
+            Console.WriteLine($"[DEBUG] Time comparison: currentTimeOfDay={currentTimeOfDay}, morningLimit={new TimeSpan(12, 0, 0)}, afternoonLimit={new TimeSpan(17, 0, 0)}");
+            // Console.WriteLine($"[DEBUG] Morning shift logic: morningWorks={morningWorks}, appointments={morningAppointments}, maxSlots={MAX_SLOTS_PER_DAY}, isToday={isToday}, isPastMorningShift={isPastMorningShift}");
+            // Console.WriteLine($"[DEBUG] Afternoon shift logic: afternoonWorks={afternoonWorks}, appointments={afternoonAppointments}, maxSlots={MAX_SLOTS_PER_DAY}, isToday={isToday}, isPastAfternoonShift={isPastAfternoonShift}");
 
             // Kiểm tra bác sĩ có làm việc trong ngày này không
             var doctorShifts = await _context.Doctor_Shifts
@@ -1673,12 +1681,14 @@ public class AppointmentController : ControllerBase
 
             // Kiểm tra ca sáng
             bool morningWorks = doctorShifts.Any(s => s.ShiftType.ToLower() == "morning");
-            bool morningAvailable = morningWorks && morningAppointments < MAX_SLOTS_PER_DAY && !isPastMorningShift;
+            // Chỉ kiểm tra isPastMorningShift nếu là ngày hôm nay
+            bool morningAvailable = morningWorks && morningAppointments < MAX_SLOTS_PER_DAY && (!isToday || !isPastMorningShift);
             int morningCount = morningWorks ? morningAppointments : 0;
 
             // Kiểm tra ca chiều
             bool afternoonWorks = doctorShifts.Any(s => s.ShiftType.ToLower() == "afternoon");
-            bool afternoonAvailable = afternoonWorks && afternoonAppointments < MAX_SLOTS_PER_DAY && !isPastAfternoonShift;
+            // Chỉ kiểm tra isPastAfternoonShift nếu là ngày hôm nay
+            bool afternoonAvailable = afternoonWorks && afternoonAppointments < MAX_SLOTS_PER_DAY && (!isToday || !isPastAfternoonShift);
             int afternoonCount = afternoonWorks ? afternoonAppointments : 0;
 
             Console.WriteLine($"[DEBUG] Morning works: {morningWorks}, morning appointments: {morningAppointments}, morning available: {morningAvailable}");
