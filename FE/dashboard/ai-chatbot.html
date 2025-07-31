@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot - Đặt Lịch Khám</title>
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
+    <link href="assets/css/ai-chatbot.css" rel="stylesheet">
+    <link href="assets/vendor/font-awesome/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <h4><i class="fas fa-robot text-primary"></i> AI Assistant</h4>
+                        <p class="text-muted">Hỗ trợ đặt lịch khám 24/7</p>
+                    </div>
+                    
+                    <div class="sidebar-content">
+                        <div class="quick-actions">
+                            <h6>Thao tác nhanh:</h6>
+                            <button class="btn btn-outline-primary btn-sm mb-2 w-100" onclick="quickAction('book')">
+                                <i class="fas fa-calendar-plus"></i> Đặt lịch khám
+                            </button>
+                            <button class="btn btn-outline-info btn-sm mb-2 w-100" onclick="quickAction('check')">
+                                <i class="fas fa-search"></i> Kiểm tra lịch hẹn
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm mb-2 w-100" onclick="quickAction('cancel')">
+                                <i class="fas fa-calendar-times"></i> Hủy lịch hẹn
+                            </button>
+                            <button class="btn btn-outline-success btn-sm mb-2 w-100" onclick="quickAction('info')">
+                                <i class="fas fa-info-circle"></i> Thông tin bệnh viện
+                            </button>
+                        </div>
+                        
+                        <div class="chat-info mt-4">
+                            <h6>Thông tin:</h6>
+                            <div class="info-item">
+                                <i class="fas fa-clock text-primary"></i>
+                                <span>Giờ làm việc: 7:00 - 18:00</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-phone text-success"></i>
+                                <span>Hotline: 1900-xxxx</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                <span>123 Đường ABC, Quận 1, TP.HCM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Area -->
+            <div class="col-lg-9 col-md-8">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="chat-title">
+                            <h5><i class="fas fa-comments"></i> AI Chatbot</h5>
+                            <span class="status online">Đang hoạt động</span>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="clearChat()">
+                                <i class="fas fa-trash"></i> Xóa chat
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="exportChat()">
+                                <i class="fas fa-download"></i> Xuất chat
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Messages will be added here -->
+                    </div>
+                    
+                    <div class="chat-input">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="messageInput" 
+                                   placeholder="Nhập tin nhắn của bạn..." 
+                                   onkeypress="handleKeyPress(event)">
+                            <button class="btn btn-primary" onclick="sendMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+                            <span>AI đang nhập...</span>
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Đang xử lý yêu cầu...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/ai-chatbot.js"></script>
+</body>
+</html> 
