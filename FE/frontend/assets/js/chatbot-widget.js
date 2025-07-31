@@ -205,6 +205,11 @@ Bạn cần hỗ trợ gì? 😊`,
     async processMessage(message) {
         const lowerMessage = message.toLowerCase();
         
+        // Check if we're in the middle of appointment booking
+        if (this.appointmentData.step) {
+            return await this.handleBookAppointment(message);
+        }
+        
         // Intent recognition
         const intent = this.recognizeIntent(lowerMessage);
         
@@ -273,7 +278,8 @@ Bạn cần hỗ trợ gì? 😊`,
         const extractedInfo = this.extractAppointmentInfo(message);
         
         if (this.appointmentData.step === 'name') {
-            this.appointmentData.name = extractedInfo.name || message;
+            // Accept any reasonable name input
+            this.appointmentData.name = message.trim();
             this.appointmentData.step = 'phone';
             return {
                 type: 'bot',
@@ -283,7 +289,8 @@ Bạn cần hỗ trợ gì? 😊`,
         }
         
         if (this.appointmentData.step === 'phone') {
-            this.appointmentData.phone = extractedInfo.phone || message;
+            // Accept any phone number format
+            this.appointmentData.phone = message.trim();
             this.appointmentData.step = 'department';
             return {
                 type: 'bot',
@@ -357,7 +364,7 @@ Thông tin trên có chính xác không?`,
         }
         
         if (this.appointmentData.step === 'confirm') {
-            if (message.toLowerCase().includes('xác nhận') || message.toLowerCase().includes('đúng')) {
+            if (message.toLowerCase().includes('xác nhận') || message.toLowerCase().includes('đúng') || message.toLowerCase().includes('ok')) {
                 return await this.submitAppointment();
             } else {
                 this.appointmentData = { step: 'name' };
@@ -418,6 +425,7 @@ Vui lòng thử lại hoặc liên hệ hotline 0862502458 để được hỗ t
     }
 
     handleServiceInfo() {
+        this.resetAppointmentData(); // Reset when starting new conversation
         return {
             type: 'bot',
             content: `🏥 **Dịch vụ tại G-Care Clinic:**
@@ -453,6 +461,7 @@ Bạn quan tâm đến dịch vụ nào?`,
     }
 
     handleDoctorInfo() {
+        this.resetAppointmentData(); // Reset when starting new conversation
         return {
             type: 'bot',
             content: `👨‍⚕️ **Đội ngũ bác sĩ G-Care Clinic:**
@@ -486,6 +495,7 @@ Bạn muốn đặt lịch với bác sĩ nào?`,
     }
 
     handleContactInfo() {
+        this.resetAppointmentData(); // Reset when starting new conversation
         return {
             type: 'bot',
             content: `📞 **Thông tin liên hệ G-Care Clinic:**
@@ -565,7 +575,7 @@ Hoặc gõ "giúp đỡ" để xem tất cả tính năng!`,
         const info = {};
         
         // Extract name (simple heuristic)
-        if (message.length > 2 && message.length < 50) {
+        if (message.length > 1 && message.length < 50) {
             info.name = message.trim();
         }
         
@@ -660,6 +670,11 @@ Hoặc gõ "giúp đỡ" để xem tất cả tính năng!`,
     handleQuickReply(reply) {
         document.getElementById('chatbotInput').value = reply;
         this.sendMessage();
+    }
+
+    // Reset appointment data when starting new conversation
+    resetAppointmentData() {
+        this.appointmentData = {};
     }
 
     formatTime(timestamp) {
