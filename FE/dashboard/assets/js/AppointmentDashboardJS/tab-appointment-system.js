@@ -298,57 +298,106 @@
             });
     }
 
-            // Load available shifts for selected doctor and date
-        function loadShifts(doctorId, date) {
-            if (!doctorId || !date) {
-                const shiftSelect = document.getElementById('addShift');
-                shiftSelect.innerHTML = '<option value="">Chọn ca khám</option>';
+    // Load available shifts for selected doctor and date
+    function loadShifts(doctorId, date) {
+        if (!doctorId || !date) {
+            const shiftSelect = document.getElementById('addShift');
+            shiftSelect.innerHTML = '<option value="">Chọn ca khám</option>';
+            shiftSelect.disabled = true;
+            return;
+        }
+
+        // Show loading state
+        const shiftSelect = document.getElementById('addShift');
+        shiftSelect.innerHTML = '<option value="">Đang tải...</option>';
+        shiftSelect.disabled = true;
+
+        // Sử dụng API endpoint có sẵn từ AppointmentController
+        fetch(`https://localhost:7097/api/appointment/available-time-slots?doctorId=${doctorId}&date=${date}`)
+        .then(response => response.json())
+        .then(result => {
+            console.log('Available time slots response:', result);
+            
+            shiftSelect.innerHTML = '<option value="">Chọn ca khám</option>';
+            
+            if (!result.success) {
+                showNotification('Lỗi khi tải thông tin ca khám: ' + (result.message || 'Unknown error'), 'error');
                 shiftSelect.disabled = true;
                 return;
             }
 
-            // Sử dụng endpoint đúng cho shifts
-            fetch(`https://localhost:7097/api/appointment/available-time-slots?doctorId=${doctorId}&date=${date}`)
-            .then(response => response.json())
-            .then(result => {
-                console.log('Shifts response:', result);
-                
-                const shiftSelect = document.getElementById('addShift');
-                shiftSelect.innerHTML = '<option value="">Chọn ca khám</option>';
-                
-                if (result.success && result.data && Array.isArray(result.data)) {
-                    if (result.data.length === 0) {
-                        shiftSelect.innerHTML += '<option value="" disabled>Không có ca khám nào trong ngày này</option>';
-                    } else {
-                        // Xử lý format response mới từ available-time-slots
-                        result.data.forEach(timeSlot => {
-                            const optionText = `${timeSlot.shift} (${timeSlot.startTime} - ${timeSlot.endTime})`;
-                            const optionValue = timeSlot.shift; // Sử dụng shift name thay vì id
-                            shiftSelect.innerHTML += `<option value="${optionValue}">${optionText}</option>`;
-                        });
-                    }
-                    // Enable the shift dropdown
-                    shiftSelect.disabled = false;
-                } else if (result.success && result.data && !Array.isArray(result.data)) {
-                    // Nếu data không phải array, thử xử lý như object
-                    console.log('Data is not array, treating as object:', result.data);
-                    const shifts = ['morning', 'afternoon'];
-                    shifts.forEach(shift => {
-                        shiftSelect.innerHTML += `<option value="${shift}">${shift === 'morning' ? 'Sáng' : 'Chiều'}</option>`;
-                    });
-                    shiftSelect.disabled = false;
-                } else {
-                    console.error('Failed to load shifts:', result);
-                    showNotification('Lỗi khi tải danh sách ca khám', 'error');
-                    shiftSelect.disabled = true;
-                }
-            })
-            .catch(error => {
-                console.error('Error loading shifts:', error);
-                showNotification('Lỗi khi tải danh sách ca khám', 'error');
-                const shiftSelect = document.getElementById('addShift');
+            const data = result.data;
+            if (!data) {
+                shiftSelect.innerHTML += '<option value="" disabled>Không có thông tin ca khám</option>';
                 shiftSelect.disabled = true;
-            });
+                return;
+            }
+
+            let hasAvailableShifts = false;
+
+            // Xử lý ca sáng
+            if (data.morning) {
+                const morningAvailable = data.morning.available;
+                const morningCount = data.morning.count;
+                const maxSlots = data.morning.maxSlots;
+                
+                let morningText = 'Ca sáng (07:00 - 12:00)';
+                if (!morningAvailable) {
+                    if (data.morning.isPastTime) {
+                        morningText += ' - Đã quá giờ';
+                    } else if (!data.morning.doctorWorks) {
+                        morningText += ' - Bác sĩ không làm việc';
+                    } else {
+                        morningText += ` - Đã đầy (${morningCount}/${maxSlots})`;
+                    }
+                } else {
+                    morningText += ` (${morningCount}/${maxSlots})`;
+                    hasAvailableShifts = true;
+                }
+
+                const morningValue = morningAvailable ? 'morning' : '';
+                const morningDisabled = morningAvailable ? '' : 'disabled';
+                shiftSelect.innerHTML += `<option value="${morningValue}" ${morningDisabled}>${morningText}</option>`;
+            }
+
+            // Xử lý ca chiều
+            if (data.afternoon) {
+                const afternoonAvailable = data.afternoon.available;
+                const afternoonCount = data.afternoon.count;
+                const maxSlots = data.afternoon.maxSlots;
+                
+                let afternoonText = 'Ca chiều (13:00 - 17:00)';
+                if (!afternoonAvailable) {
+                    if (data.afternoon.isPastTime) {
+                        afternoonText += ' - Đã quá giờ';
+                    } else if (!data.afternoon.doctorWorks) {
+                        afternoonText += ' - Bác sĩ không làm việc';
+                    } else {
+                        afternoonText += ` - Đã đầy (${afternoonCount}/${maxSlots})`;
+                    }
+                } else {
+                    afternoonText += ` (${afternoonCount}/${maxSlots})`;
+                    hasAvailableShifts = true;
+                }
+
+                const afternoonValue = afternoonAvailable ? 'afternoon' : '';
+                const afternoonDisabled = afternoonAvailable ? '' : 'disabled';
+                shiftSelect.innerHTML += `<option value="${afternoonValue}" ${afternoonDisabled}>${afternoonText}</option>`;
+            }
+
+            if (!hasAvailableShifts) {
+                shiftSelect.innerHTML += '<option value="" disabled>Tất cả ca khám đã đầy hoặc đã quá giờ</option>';
+                shiftSelect.disabled = true;
+            } else {
+                shiftSelect.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading available time slots:', error);
+            showNotification('Lỗi khi tải thông tin ca khám: ' + error.message, 'error');
+            shiftSelect.innerHTML = '<option value="">Lỗi khi tải ca khám</option>';
+            shiftSelect.disabled = true;
+        });
     }
 
     // Initialize date picker
@@ -358,6 +407,24 @@
             // Set minimum date to today
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
+            
+            // Add input validation to prevent manual entry of past dates
+            dateInput.addEventListener('input', function() {
+                const selectedDate = new Date(this.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    showNotification('Không thể chọn ngày trong quá khứ', 'error');
+                    this.value = '';
+                    // Clear shift dropdown
+                    const shiftSelect = document.getElementById('addShift');
+                    if (shiftSelect) {
+                        shiftSelect.innerHTML = '<option value="">Chọn ca khám</option>';
+                        shiftSelect.disabled = true;
+                    }
+                }
+            });
         }
     }
 
@@ -864,23 +931,22 @@
                 showNotification('Tạo bệnh nhân và cuộc hẹn thành công!', 'success');
                 handleSuccess();
             } else {
-                showNotification('Lỗi khi tạo bệnh nhân và cuộc hẹn: ' + (data.message || 'Unknown error'), 'error');
+                // showNotification('Lỗi khi tạo bệnh nhân và cuộc hẹn: ' + (data.message || 'Unknown error'), 'error');
+                // Đã tắt thông báo lỗi theo yêu cầu
             }
         })
         .catch(error => {
             clearTimeout(timeoutId);
             console.error('Error creating patient and appointment:', error);
-            
-            let errorMessage = 'Lỗi khi tạo bệnh nhân và cuộc hẹn';
-            if (error.name === 'AbortError') {
-                errorMessage = 'Yêu cầu bị timeout. Vui lòng thử lại!';
-            } else if (error.message.includes('fetch')) {
-                errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối!';
-            } else {
-                errorMessage = error.message;
-            }
-            
-            showNotification(errorMessage, 'error');
+            // let errorMessage = 'Lỗi khi tạo bệnh nhân và cuộc hẹn';
+            // if (error.name === 'AbortError') {
+            //     errorMessage = 'Yêu cầu bị timeout. Vui lòng thử lại!';
+            // } else if (error.message.includes('fetch')) {
+            //     errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối!';
+            // } else {
+            //     errorMessage = error.message;
+            // }
+            // showNotification(errorMessage, 'error'); // Đã tắt thông báo lỗi theo yêu cầu
         })
         .finally(() => {
             clearTimeout(timeoutId);

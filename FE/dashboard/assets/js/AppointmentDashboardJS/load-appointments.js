@@ -34,6 +34,41 @@
             }
         },
 
+        // Sắp xếp appointments theo ngày tăng dần và ca sáng trước ca chiều
+        sortAppointments: function(appointments) {
+            return appointments.sort((a, b) => {
+                // So sánh ngày trước
+                const dateA = new Date(a.date || a.appointmentDate);
+                const dateB = new Date(b.date || b.appointmentDate);
+                
+                if (dateA.getTime() !== dateB.getTime()) {
+                    return dateA.getTime() - dateB.getTime(); // Ngày tăng dần
+                }
+                
+                // Nếu cùng ngày, sắp xếp theo ca: sáng trước, chiều sau
+                const shiftA = (a.shift || a.shiftName || '').toLowerCase();
+                const shiftB = (b.shift || b.shiftName || '').toLowerCase();
+                
+                // Định nghĩa thứ tự ưu tiên: sáng > chiều > tối
+                const shiftOrder = {
+                    'sáng': 1,
+                    'morning': 1,
+                    'ca sáng': 1,
+                    'chiều': 2,
+                    'afternoon': 2,
+                    'ca chiều': 2,
+                    'tối': 3,
+                    'evening': 3,
+                    'ca tối': 3
+                };
+                
+                const orderA = shiftOrder[shiftA] || 999;
+                const orderB = shiftOrder[shiftB] || 999;
+                
+                return orderA - orderB;
+            });
+        },
+
         // Lấy text trạng thái
         getStatusText: function(status) {
             const statusMap = {
@@ -222,6 +257,12 @@
     // Class chính để load và hiển thị cuộc hẹn
     class AppointmentLoader {
         constructor() {
+            // Thêm cấu hình phân trang
+            this.paginationConfig = {
+                itemsPerPage: 10,
+                currentPage: 1
+            };
+            
             this.init();
         }
 
@@ -264,6 +305,46 @@
                 console.log('🔍 Filter event received:', e.detail);
                 if (e.detail && e.detail.filterType) {
                     this.setFilter(e.detail.filterType);
+                }
+            });
+
+            // Lắng nghe sự kiện chuyển tab để reset phân trang
+            document.addEventListener('shown.bs.tab', (e) => {
+                console.log('📋 Tab changed:', e.target.getAttribute('data-bs-target'));
+                this.paginationConfig.currentPage = 1;
+                // Cập nhật lại bảng sau khi chuyển tab
+                setTimeout(() => {
+                    this.updateAllTables();
+                }, 100);
+            });
+
+            // Lắng nghe sự kiện thay đổi số items per page
+            document.addEventListener('change', (e) => {
+                if (e.target.matches('select[id$="-per-page"]')) {
+                    const newItemsPerPage = parseInt(e.target.value);
+                    console.log('📊 Items per page changed to:', newItemsPerPage);
+                    this.paginationConfig.itemsPerPage = newItemsPerPage;
+                    this.paginationConfig.currentPage = 1;
+                    this.updateAllTables();
+                }
+            });
+
+            // Lắng nghe sự kiện click cho pagination buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.matches('.pagination .page-link')) {
+                    e.preventDefault();
+                    const pageText = e.target.textContent.trim();
+                    const page = parseInt(pageText);
+                    
+                    if (!isNaN(page)) {
+                        this.changePage(page);
+                    } else if (pageText.includes('chevron-left')) {
+                        // Previous button
+                        this.changePage(this.paginationConfig.currentPage - 1);
+                    } else if (pageText.includes('chevron-right')) {
+                        // Next button
+                        this.changePage(this.paginationConfig.currentPage + 1);
+                    }
                 }
             });
         }
@@ -419,6 +500,9 @@
             const tabPanes = document.querySelectorAll('.tab-pane');
             console.log('📊 Found tab panes:', tabPanes.length);
             
+            // Đảm bảo HTML phân trang được tạo
+            this.ensurePaginationHTML();
+            
             tabPanes.forEach((pane, index) => {
                 console.log(`📊 Tab ${index} - pane:`, pane);
                 console.log(`📊 Tab ${index} - pane id:`, pane.id);
@@ -430,6 +514,64 @@
                     this.updateTable(table, index);
                 } else {
                     console.warn(`⚠️ No table found in tab ${index}`);
+                }
+            });
+        }
+
+        // Đảm bảo HTML phân trang được tạo trong các tab
+        ensurePaginationHTML() {
+            const tabNames = ['upcoming', 'inprogress', 'completed', 'cancelled'];
+            
+            tabNames.forEach(tabName => {
+                const tabPane = document.getElementById(tabName);
+                if (!tabPane) {
+                    console.warn(`⚠️ Tab pane not found: ${tabName}`);
+                    return;
+                }
+
+                // Kiểm tra xem đã có pagination container chưa
+                let paginationContainer = tabPane.querySelector('.pagination-container');
+                
+                if (!paginationContainer) {
+                    console.log(`📊 Creating pagination HTML for tab: ${tabName}`);
+                    
+                    // Tạo HTML phân trang
+                    const paginationHTML = `
+                        <div class="pagination-container">
+                            <div class="pagination-info">
+                                Hiển thị <span id="${tabName}-start">1</span> đến <span id="${tabName}-end">10</span> của <span id="${tabName}-total">0</span> cuộc hẹn
+                            </div>
+                            <div class="pagination-controls">
+                                <div class="pagination-select">
+                                    <label for="${tabName}-per-page">Hiển thị:</label>
+                                    <select id="${tabName}-per-page">
+                                        <option value="10" selected>10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                                <nav aria-label="Pagination Navigation">
+                                    <ul id="${tabName}-pagination" class="pagination">
+                                        <li class="page-item disabled">
+                                            <span class="page-link">Đang tải...</span>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Thêm vào sau table
+                    const table = tabPane.querySelector('table');
+                    if (table) {
+                        table.insertAdjacentHTML('afterend', paginationHTML);
+                        console.log(`✅ Pagination HTML added to tab: ${tabName}`);
+                    } else {
+                        console.warn(`⚠️ No table found in tab: ${tabName}`);
+                    }
+                } else {
+                    console.log(`📊 Pagination container already exists for tab: ${tabName}`);
                 }
             });
         }
@@ -447,26 +589,46 @@
             let filteredAppointments = this.filterAppointmentsByTab(appState.appointments, tabIndex);
             console.log(`📊 Filtered appointments for tab ${tabIndex}:`, filteredAppointments.length);
             
-                               if (filteredAppointments.length === 0) {
-                       const messages = [
-                           'Không có cuộc hẹn sắp tới',
-                            'Không có cuộc hẹn đang khám',
-                           'Không có cuộc hẹn đã hoàn thành',
-                           'Không có cuộc hẹn đã hủy'
-                       ];
-                       Utils.showNoData(tbody, messages[tabIndex] || 'Không có dữ liệu');
-                       console.log(`📊 Showing no data message for tab ${tabIndex}`);
-                       return;
-                   }
+            if (filteredAppointments.length === 0) {
+                const messages = [
+                    'Không có cuộc hẹn sắp tới',
+                    'Không có cuộc hẹn đang khám',
+                    'Không có cuộc hẹn đã hoàn thành',
+                    'Không có cuộc hẹn đã hủy'
+                ];
+                Utils.showNoData(tbody, messages[tabIndex] || 'Không có dữ liệu');
+                console.log(`📊 Showing no data message for tab ${tabIndex}`);
+                return;
+            }
+
+            // Áp dụng phân trang
+            const startIndex = (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage;
+            const endIndex = startIndex + this.paginationConfig.itemsPerPage;
+            const paginatedAppointments = filteredAppointments.slice(startIndex, endIndex);
+            
+            console.log(`📊 Pagination: page ${this.paginationConfig.currentPage}, showing ${paginatedAppointments.length} of ${filteredAppointments.length} items`);
 
             // Tạo HTML cho bảng
-            const tableHTML = this.generateTableRows(filteredAppointments);
+            const tableHTML = this.generateTableRows(paginatedAppointments, startIndex);
             console.log(`📊 Generated HTML for tab ${tabIndex}:`, tableHTML);
             console.log(`📊 HTML length:`, tableHTML.length);
             console.log(`📊 Tbody before update:`, tbody.innerHTML.length, 'characters');
             tbody.innerHTML = tableHTML;
             console.log(`📊 Tbody after update:`, tbody.innerHTML.length, 'characters');
-            console.log(`✅ Updated table for tab ${tabIndex} with ${filteredAppointments.length} appointments`);
+            console.log(`✅ Updated table for tab ${tabIndex} with ${paginatedAppointments.length} appointments (paginated)`);
+            
+            // Cập nhật thông tin phân trang
+            this.updatePaginationInfo(tabIndex, filteredAppointments.length);
+            
+            // Cập nhật điều khiển phân trang
+            this.updatePaginationControls(tabIndex, filteredAppointments.length);
+            
+            // Force update pagination info nếu có function
+            if (window.forceUpdatePaginationInfo) {
+                setTimeout(() => {
+                    window.forceUpdatePaginationInfo();
+                }, 50);
+            }
         }
 
                            // Lọc cuộc hẹn theo tab
@@ -541,12 +703,17 @@
             });
             
             console.log(`📊 Filtered result for tab ${tabIndex}:`, filtered.length);
-            return filtered;
+            
+            // Sắp xếp theo ngày tăng dần và ca sáng trước ca chiều
+            const sorted = Utils.sortAppointments(filtered);
+            
+            console.log(`📊 Sorted appointments for tab ${tabIndex}:`, sorted.length);
+            return sorted;
         }
 
         // Tạo HTML cho các dòng bảng
-        generateTableRows(appointments) {
-            console.log('🔄 Generating table rows for', appointments.length, 'appointments');
+        generateTableRows(appointments, startIndex = 0) {
+            console.log('🔄 Generating table rows for', appointments.length, 'appointments starting from index', startIndex);
             
             const rows = appointments.map((appointment, index) => {
                 console.log('📊 Generating row for appointment:', appointment);
@@ -573,7 +740,7 @@
                 
                 const row = `
                     <tr data-appointment-id="${appointment.id}">
-                        <th scope="row">${index + 1}</th>
+                        <th scope="row">${startIndex + index + 1}</th>
                         <td>
                             <h5 class="mb-0">${patientName}</h5>
                         </td>
@@ -737,52 +904,66 @@
             
             const today = new Date().toISOString().split('T')[0];
             
+            let filtered;
             switch (filterType) {
                 case 'today':
-                    return appointments.filter(apt => {
+                    filtered = appointments.filter(apt => {
                         const aptDate = new Date(apt.date).toISOString().split('T')[0];
                         return aptDate === today;
                     });
+                    break;
                     
                 case 'this_week':
                     const weekStart = this.getWeekStart();
                     const weekEnd = this.getWeekEnd();
-                    return appointments.filter(apt => {
+                    filtered = appointments.filter(apt => {
                         const aptDate = new Date(apt.date);
                         return aptDate >= weekStart && aptDate <= weekEnd;
                     });
+                    break;
                     
                 case 'this_month':
                     const monthStart = this.getMonthStart();
                     const monthEnd = this.getMonthEnd();
-                    return appointments.filter(apt => {
+                    filtered = appointments.filter(apt => {
                         const aptDate = new Date(apt.date);
                         return aptDate >= monthStart && aptDate <= monthEnd;
                     });
+                    break;
                     
                 case 'pending':
-                    return appointments.filter(apt => 
+                    filtered = appointments.filter(apt => 
                         apt.status === 'đã lên lịch' || apt.status === 'Đã lên lịch'
                     );
+                    break;
                     
                 case 'in_progress':
-                    return appointments.filter(apt => 
+                    filtered = appointments.filter(apt => 
                         apt.status === 'đang khám' || apt.status === 'Đang khám'
                     );
+                    break;
                     
                 case 'completed':
-                    return appointments.filter(apt => 
+                    filtered = appointments.filter(apt => 
                         apt.status === 'đã hoàn thành' || apt.status === 'Đã hoàn thành'
                     );
+                    break;
                     
                 case 'cancelled':
-                    return appointments.filter(apt => 
+                    filtered = appointments.filter(apt => 
                         apt.status === 'đã hủy' || apt.status === 'Đã hủy'
                     );
+                    break;
                     
                 default:
-                    return appointments;
+                    filtered = appointments;
             }
+            
+            // Sắp xếp kết quả filter theo ngày tăng dần và ca sáng trước ca chiều
+            const sorted = Utils.sortAppointments(filtered);
+            
+            console.log(`📊 Global filter result: ${sorted.length} appointments`);
+            return sorted;
         }
 
         // Utility functions cho date
@@ -821,6 +1002,138 @@
                     this.loadAppointments();
                 }
             }, CONFIG.refreshInterval);
+        }
+
+        // Phương thức phân trang
+        updatePaginationInfo(tabIndex, totalItems) {
+            const tabNames = ['upcoming', 'request', 'completed', 'cancelled'];
+            const tabName = tabNames[tabIndex];
+            
+            const start = totalItems === 0 ? 0 : (this.paginationConfig.currentPage - 1) * this.paginationConfig.itemsPerPage + 1;
+            const end = Math.min(this.paginationConfig.currentPage * this.paginationConfig.itemsPerPage, totalItems);
+
+            const startElement = document.getElementById(`${tabName}-start`);
+            const endElement = document.getElementById(`${tabName}-end`);
+            const totalElement = document.getElementById(`${tabName}-total`);
+
+            if (startElement) startElement.textContent = start;
+            if (endElement) endElement.textContent = end;
+            if (totalElement) totalElement.textContent = totalItems;
+
+            console.log(`📊 Pagination info updated for ${tabName}: ${start}-${end} of ${totalItems}`);
+        }
+
+        updatePaginationControls(tabIndex, totalItems) {
+            const tabNames = ['upcoming', 'request', 'completed', 'cancelled'];
+            const tabName = tabNames[tabIndex];
+            
+            const pagination = document.getElementById(`${tabName}-pagination`);
+            if (!pagination) {
+                console.warn(`⚠️ Pagination container not found for ${tabName}`);
+                return;
+            }
+
+            const totalPages = Math.ceil(totalItems / this.paginationConfig.itemsPerPage);
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '<li class="page-item disabled"><span class="page-link">Không có trang nào</span></li>';
+                return;
+            }
+
+            let html = '';
+
+            // Previous button
+            html += `
+                <li class="page-item ${this.paginationConfig.currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="appointmentLoader.changePage(${this.paginationConfig.currentPage - 1})" 
+                       title="Trang trước">
+                        <i class="fas fa-chevron-left icon"></i>
+                    </a>
+                </li>
+            `;
+
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, this.paginationConfig.currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="appointmentLoader.changePage(1)">1</a>
+                    </li>
+                `;
+                if (startPage > 2) {
+                    html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                    <li class="page-item ${i === this.paginationConfig.currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="appointmentLoader.changePage(${i})">${i}</a>
+                    </li>
+                `;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+                }
+                html += `
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="appointmentLoader.changePage(${totalPages})">${totalPages}</a>
+                    </li>
+                `;
+            }
+
+            // Next button
+            html += `
+                <li class="page-item ${this.paginationConfig.currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="appointmentLoader.changePage(${this.paginationConfig.currentPage + 1})"
+                       title="Trang tiếp">
+                        <i class="fas fa-chevron-right icon"></i>
+                    </a>
+                </li>
+            `;
+
+            pagination.innerHTML = html;
+            console.log(`📊 Pagination controls updated for ${tabName}: page ${this.paginationConfig.currentPage} of ${totalPages}`);
+        }
+
+        changePage(page) {
+            // Lấy tab hiện tại
+            const activeTab = document.querySelector('.tab-pane.active');
+            if (!activeTab) {
+                console.warn('⚠️ No active tab found');
+                return;
+            }
+            
+            const tabId = activeTab.id;
+            const tabNames = ['upcoming', 'inprogress', 'completed', 'cancelled'];
+            const tabIndex = tabNames.indexOf(tabId);
+            
+            if (tabIndex === -1) {
+                console.warn('⚠️ Invalid tab index');
+                return;
+            }
+            
+            // Lọc appointments theo tab hiện tại
+            const filteredAppointments = this.filterAppointmentsByTab(appState.appointments, tabIndex);
+            const totalPages = Math.ceil(filteredAppointments.length / this.paginationConfig.itemsPerPage);
+            
+            if (page < 1 || page > totalPages) {
+                console.warn(`⚠️ Invalid page number: ${page}, max: ${totalPages}`);
+                return;
+            }
+
+            console.log(`📄 Changing to page ${page} for tab ${tabId} (${filteredAppointments.length} items, ${totalPages} pages)`);
+            this.paginationConfig.currentPage = page;
+            this.updateAllTables();
         }
     }
 
@@ -873,6 +1186,9 @@
             console.warn('AppointmentLoader chưa được khởi tạo');
         }
     };
+
+    // Export appointmentLoader instance để có thể gọi từ onclick
+    window.appointmentLoader = window.AppointmentLoader;
 
     window.filterAppointments = function(filterType) {
         if (window.AppointmentLoader) {
@@ -944,45 +1260,28 @@
             return;
         }
         
-        // Tạo dữ liệu test cho 4 tab
-        const mockAppointments = [
-            {
-                id: 'test-1',
-                patientName: 'Nguyễn Văn A',
-                doctorName: 'Bác sĩ Trần Thị B',
-                clinicName: 'Phòng khám Tim mạch',
-                date: '2024-01-15',
-                shift: 'MORNING',
-                status: 'PENDING'
-            },
-            {
-                id: 'test-2',
-                patientName: 'Lê Văn C',
-                doctorName: 'Bác sĩ Phạm Văn D',
-                clinicName: 'Phòng khám Nhi khoa',
-                date: '2024-01-16',
-                shift: 'AFTERNOON',
-                status: 'IN_PROGRESS'
-            },
-            {
-                id: 'test-3',
-                patientName: 'Trần Thị E',
-                doctorName: 'Bác sĩ Nguyễn Văn F',
-                clinicName: 'Phòng khám Da liễu',
-                date: '2024-01-14',
-                shift: 'EVENING',
-                status: 'COMPLETED'
-            },
-            {
-                id: 'test-4',
-                patientName: 'Phạm Văn G',
-                doctorName: 'Bác sĩ Lê Thị H',
-                clinicName: 'Phòng khám Tai mũi họng',
-                date: '2024-01-17',
-                shift: 'MORNING',
-                status: 'CANCELLED'
-            }
-        ];
+        // Tạo dữ liệu test cho 4 tab với nhiều dữ liệu hơn để test phân trang
+        const mockAppointments = [];
+        
+        // Tạo 50 appointments để test phân trang
+        for (let i = 1; i <= 50; i++) {
+            const statuses = ['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+            const shifts = ['MORNING', 'AFTERNOON', 'EVENING'];
+            const clinics = [
+                'Phòng khám Tim mạch', 'Phòng khám Nhi khoa', 'Phòng khám Da liễu',
+                'Phòng khám Tai mũi họng', 'Phòng khám Thần kinh', 'Phòng khám Xương khớp'
+            ];
+            
+            mockAppointments.push({
+                id: `test-${i}`,
+                patientName: `Bệnh nhân ${i}`,
+                doctorName: `Bác sĩ ${i}`,
+                clinicName: clinics[i % clinics.length],
+                date: `2024-01-${15 + (i % 10)}`,
+                shift: shifts[i % shifts.length],
+                status: statuses[i % statuses.length]
+            });
+        }
         
         console.log('🧪 Mock appointments:', mockAppointments);
         
@@ -995,7 +1294,34 @@
         // Cập nhật bảng
         window.AppointmentLoader.updateAllTables();
         
-        console.log('🧪 Display test completed');
+        console.log('🧪 Display test completed with pagination');
+    };
+
+    // Test function để test phân trang
+    window.testPagination = function() {
+        console.log('🧪 Testing pagination...');
+        
+        if (!window.AppointmentLoader) {
+            console.error('❌ AppointmentLoader not initialized');
+            return;
+        }
+        
+        // Test với dữ liệu mock
+        window.testDisplayWithMockData();
+        
+        // Test chuyển trang
+        setTimeout(() => {
+            console.log('🧪 Testing page navigation...');
+            window.AppointmentLoader.changePage(2);
+        }, 1000);
+        
+        // Test thay đổi items per page
+        setTimeout(() => {
+            console.log('🧪 Testing items per page change...');
+            window.AppointmentLoader.paginationConfig.itemsPerPage = 20;
+            window.AppointmentLoader.paginationConfig.currentPage = 1;
+            window.AppointmentLoader.updateAllTables();
+        }, 2000);
     };
 
     // Export appState để các file khác có thể truy cập
