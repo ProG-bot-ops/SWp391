@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Gemini API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Gemini API Integration</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Kiểm tra API Endpoint</h3>
+        <p>API Key: <strong>AIzaSyCDn0x0eqw8j19ERcMeUKfBguesouAGEeU</strong></p>
+        <p>Endpoint: <strong>https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent</strong></p>
+        <button onclick="testEndpoint()">Test Endpoint</button>
+        <div id="endpoint-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 2: Gửi câu hỏi đơn giản</h3>
+        <input type="text" id="testQuestion" placeholder="Nhập câu hỏi test..." value="Xin chào, bạn có thể giúp tôi không?">
+        <button onclick="testSimpleQuestion()">Gửi câu hỏi</button>
+        <div id="question-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 3: Test với chatbot widget</h3>
+        <p>Mở chatbot và thử chế độ AI</p>
+        <button onclick="openChatbot()">Mở Chatbot</button>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyCDn0x0eqw8j19ERcMeUKfBguesouAGEeU';
+        const API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+
+        async function testEndpoint() {
+            const resultDiv = document.getElementById('endpoint-result');
+            resultDiv.textContent = 'Đang test...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_ENDPOINT}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: 'user',
+                                parts: [
+                                    {
+                                        text: 'Xin chào, hãy trả lời "Hello World"'
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            maxOutputTokens: 100,
+                            temperature: 0.7
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`HTTP ${response.status}: ${JSON.stringify(error)}`);
+                }
+
+                const data = await response.json();
+                resultDiv.textContent = `✅ Thành công!\n\nResponse: ${JSON.stringify(data, null, 2)}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ Lỗi: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function testSimpleQuestion() {
+            const question = document.getElementById('testQuestion').value;
+            const resultDiv = document.getElementById('question-result');
+            resultDiv.textContent = 'Đang gửi câu hỏi...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_ENDPOINT}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: 'user',
+                                parts: [
+                                    {
+                                        text: `Bạn là một trợ lý AI thân thiện. Hãy trả lời bằng tiếng Việt: ${question}`
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            maxOutputTokens: 500,
+                            temperature: 0.7
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(`HTTP ${response.status}: ${JSON.stringify(error)}`);
+                }
+
+                const data = await response.json();
+                const answer = data.candidates[0].content.parts[0].text;
+                resultDiv.textContent = `✅ Thành công!\n\nCâu hỏi: ${question}\n\nTrả lời: ${answer}`;
+                resultDiv.className = 'result success';
+            } catch (error) {
+                resultDiv.textContent = `❌ Lỗi: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        function openChatbot() {
+            window.open('gemini-chatbot-demo.html', '_blank');
+        }
+    </script>
+</body>
+</html> 

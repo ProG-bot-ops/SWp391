@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Week Calendar API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Week Calendar API (No Authentication Required)</h1>
+    
+    <div class="test-section">
+        <h3>Test Parameters</h3>
+        <label>User ID: <input type="number" id="userId" value="22"></label><br>
+        <label>Start Date: <input type="date" id="startDate" value="2025-07-28"></label><br>
+        <label>End Date: <input type="date" id="endDate" value="2025-08-03"></label><br>
+        <button onclick="testWeekCalendarAPI()">Test Week Calendar API</button>
+        <button onclick="testWeekStatisticsAPI()">Test Week Statistics API</button>
+    </div>
+
+    <div class="test-section">
+        <h3>API Response</h3>
+        <div id="response"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://localhost:7097/api';
+
+        async function testWeekCalendarAPI() {
+            const userId = document.getElementById('userId').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<p>Testing week calendar API...</p>';
+            
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/appointment/week-calendar?userId=${userId}&startDate=${startDate}&endDate=${endDate}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.className = 'test-section success';
+                    responseDiv.innerHTML = `
+                        <h4>✅ Success!</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Message:</strong> ${data.message}</p>
+                        <p><strong>Appointments Count:</strong> ${data.data?.appointments?.length || 0}</p>
+                        <h5>Full Response:</h5>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    responseDiv.className = 'test-section error';
+                    responseDiv.innerHTML = `
+                        <h4>❌ Error!</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Message:</strong> ${data.message || 'Unknown error'}</p>
+                        <h5>Full Response:</h5>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                responseDiv.className = 'test-section error';
+                responseDiv.innerHTML = `
+                    <h4>❌ Network Error!</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure the backend server is running on https://localhost:7097</p>
+                `;
+            }
+        }
+
+        async function testWeekStatisticsAPI() {
+            const userId = document.getElementById('userId').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = '<p>Testing week statistics API...</p>';
+            
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/appointment/week-statistics?userId=${userId}&startDate=${startDate}&endDate=${endDate}`,
+                    {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.className = 'test-section success';
+                    responseDiv.innerHTML = `
+                        <h4>✅ Success!</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Message:</strong> ${data.message}</p>
+                        <p><strong>Days Count:</strong> ${data.data?.length || 0}</p>
+                        <h5>Full Response:</h5>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    responseDiv.className = 'test-section error';
+                    responseDiv.innerHTML = `
+                        <h4>❌ Error!</h4>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Message:</strong> ${data.message || 'Unknown error'}</p>
+                        <h5>Full Response:</h5>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                responseDiv.className = 'test-section error';
+                responseDiv.innerHTML = `
+                    <h4>❌ Network Error!</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure the backend server is running on https://localhost:7097</p>
+                `;
+            }
+        }
+
+        // Auto-test on page load
+        window.onload = function() {
+            console.log('Test page loaded. Ready to test week calendar API without authentication.');
+        };
+    </script>
+</body>
+</html> 

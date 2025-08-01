@@ -4104,3 +4104,37 @@ ul.productsize {
     margin: 0 0 32px;
   }
 }
+
+/* Custom Logo Size - Make logo larger */
+.navbar-brand img {
+    height: 60px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.logo-normal img {
+    height: 60px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+/* Responsive logo sizing */
+@media (max-width: 768px) {
+    .navbar-brand img {
+        height: 50px !important;
+    }
+    
+    .logo-normal img {
+        height: 50px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand img {
+        height: 45px !important;
+    }
+    
+    .logo-normal img {
+        height: 45px !important;
+    }
+}

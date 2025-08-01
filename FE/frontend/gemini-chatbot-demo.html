@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Care Clinic - AI Chatbot Demo (Gemini)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/chatbot-widget.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .demo-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .demo-header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .demo-content {
+            padding: 40px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .feature-card h3 {
+            color: #667eea;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-card i {
+            font-size: 1.2em;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .instructions h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        
+        .instructions ol {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .gemini-info {
+            background: #f3e5f5;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #9c27b0;
+            margin-top: 20px;
+        }
+        
+        .gemini-info h4 {
+            color: #7b1fa2;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: #4caf50;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🤖 G-Care Clinic AI Chatbot</h1>
+            <p>Trợ lý AI thông minh với Gemini - Đặt lịch khám & Hỏi đáp</p>
+        </div>
+        
+        <div class="demo-content">
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3><i class="fas fa-calendar-alt"></i> Đặt lịch khám</h3>
+                    <p>Hỗ trợ đặt lịch khám bệnh tự động với quy trình đơn giản: Chọn khoa → Bác sĩ → Dịch vụ → Ngày → Ca → Thông tin cá nhân.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-robot"></i> AI Hỏi đáp (Gemini)</h3>
+                    <p>Trả lời các câu hỏi chung về sức khỏe, bệnh viện và các vấn đề khác với sức mạnh của Google Gemini AI.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-database"></i> Tích hợp Database</h3>
+                    <p>Lấy dữ liệu thực từ cơ sở dữ liệu: danh sách khoa, bác sĩ, dịch vụ, lịch làm việc và ngày nghỉ.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3><i class="fas fa-mobile-alt"></i> Responsive Design</h3>
+                    <p>Giao diện thân thiện, hoạt động tốt trên mọi thiết bị từ desktop đến mobile.</p>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3><i class="fas fa-play-circle"></i> Cách sử dụng</h3>
+                <ol>
+                    <li><strong>Mở chatbot:</strong> Nhấn vào nút chat ở góc dưới bên phải</li>
+                    <li><strong>Chọn chế độ:</strong> Sử dụng nút chuyển đổi để chọn giữa "Đặt lịch" và "AI Hỏi đáp"</li>
+                    <li><strong>Đặt lịch:</strong> Làm theo hướng dẫn từng bước để đặt lịch khám</li>
+                    <li><strong>Hỏi đáp AI:</strong> Đặt câu hỏi bất kỳ và nhận câu trả lời từ Gemini AI</li>
+                </ol>
+            </div>
+            
+            <div class="gemini-info">
+                <h4><i class="fas fa-key"></i> Gemini AI Integration <span class="status-badge">Đã tích hợp</span></h4>
+                <p><strong>API Key:</strong> Đã được cài đặt sẵn và tự động kích hoạt khi khởi động chatbot.</p>
+                <p><strong>Provider:</strong> Google Gemini AI</p>
+                <p><strong>Status:</strong> Sẵn sàng sử dụng - Bạn có thể bắt đầu hỏi đáp ngay!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <script src="assets/js/chatbot-widget.js"></script>
+</body>
+</html> 

@@ -669,3 +669,51 @@ body.uikit .btn-download {
     margin-left: 3rem;
   }
 }
+
+/* Custom Logo Size - Make dashboard logo larger */
+.navbar-brand img {
+    height: 50px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.logo-normal img {
+    height: 50px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+.logo-mini img {
+    height: 40px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+/* Responsive logo sizing for dashboard */
+@media (max-width: 768px) {
+    .navbar-brand img {
+        height: 45px !important;
+    }
+    
+    .logo-normal img {
+        height: 45px !important;
+    }
+    
+    .logo-mini img {
+        height: 35px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand img {
+        height: 40px !important;
+    }
+    
+    .logo-normal img {
+        height: 40px !important;
+    }
+    
+    .logo-mini img {
+        height: 30px !important;
+    }
+}

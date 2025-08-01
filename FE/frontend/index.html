@@ -43,6 +43,11 @@
       <!-- AI Chatbot Widget CSS -->
       <link rel="stylesheet" href="./assets/css/chatbot-widget.css"/>
       
+      <!-- Google Fonts for better typography -->
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      
       <!-- Google Font -->
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1699,6 +1704,47 @@ G-Care Clinic có nhiều loại phương pháp điều trị giúp làm giảm 
          </a>
       </div>
     <!-- Back To Top -->
+    
+    <!-- AI Chatbot Widget Container -->
+    <div class="chatbot-widget">
+        <div id="chatbot-container" class="chatbot-container">
+            <div class="chatbot-header">
+                <div class="chatbot-title">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Assistant</span>
+                </div>
+                <div class="chatbot-controls">
+                    <button class="mode-toggle" id="modeToggle" title="Chuyển chế độ">
+                        <i class="fas fa-robot"></i>
+                    </button>
+                    <button class="close-btn" id="closeChatbot" title="Đóng">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbotMessages">
+                <!-- Messages will be added here dynamically -->
+            </div>
+            
+            <div class="chatbot-footer">
+                <div class="mode-indicator">
+                    <span class="mode-badge booking-mode">📅 Đặt lịch</span>
+                </div>
+                <div class="input-container">
+                    <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." maxlength="500">
+                    <button id="sendBtn" class="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chatbot Toggle Button -->
+        <button id="chatbot-toggle" class="chatbot-toggle" title="Mở AI Assistant">
+            <i class="fas fa-comments"></i>
+        </button>
+    </div>
     
     <!-- Library Bundle Script -->
     <script src="./assets/js/core/libs.min.js"></script>

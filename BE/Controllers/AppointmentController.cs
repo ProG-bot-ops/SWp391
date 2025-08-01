@@ -396,8 +396,8 @@ public class AppointmentController : ControllerBase
             email = user.Email,
             name = patient?.Name,
             phone = patient?.Phone,
-            gender = patient?.Gender,
-            dob = patient?.Dob.ToString("yyyy-MM-dd"),
+            gender = patient?.Gender.ToString() ?? "N/A",
+            dob = patient?.Dob.ToString("yyyy-MM-dd") ?? "N/A",
             cccd = patient?.CCCD,
             address = patient?.Address
         };
@@ -513,8 +513,9 @@ public class AppointmentController : ControllerBase
             if (existingPatient != null)
             {
                 await UpdatePatientInfoIfChanged(existingPatient, request.PatientInfo);
-                // Sau khi cập nhật người thân, luôn lấy lại patient chính chủ
-                patient = mainPatient;
+                // Sử dụng patient đã tồn tại (có thể là người thân)
+                patient = existingPatient;
+                Console.WriteLine($"✅ Using existing patient: {existingPatient.Name} (ID: {existingPatient.Id})");
             }
             else
             {
@@ -540,8 +541,9 @@ public class AppointmentController : ControllerBase
                 };
                 _context.Patients.Add(newPatient);
                 await _context.SaveChangesAsync();
-                // Sau khi thêm người thân, luôn lấy lại patient chính chủ
-                patient = mainPatient;
+                // Sử dụng patient mới (người thân) thay vì patient chính
+                patient = newPatient;
+                Console.WriteLine($"✅ Created new patient for relative: {newPatient.Name} (ID: {newPatient.Id})");
             }
 
             // Kiểm tra clinic có tồn tại và hoạt động
@@ -1779,8 +1781,8 @@ public class AppointmentController : ControllerBase
         }
     }
 
-    // Thêm hàm helper an toàn cho TimeSpan
-    private string SafeTimeSpanToString(TimeSpan? time)
+    // Thêm hàm helper an toàn cho TimeSpan (static để tránh memory leak trong LINQ)
+    private static string SafeTimeSpanToString(TimeSpan? time)
     {
         if (time == null) return null;
         try 
@@ -1793,7 +1795,7 @@ public class AppointmentController : ControllerBase
             return null; 
         }
     }
-    private string SafeTimeSpanToString(TimeSpan time)
+    private static string SafeTimeSpanToString(TimeSpan time)
     {
         try 
         { 
@@ -2032,12 +2034,16 @@ public class AppointmentController : ControllerBase
                 });
             }
 
+            // Debug: Log shift information
+            Console.WriteLine($"Appointment {appointment.Id} - Shift: '{appointment.Shift}' (Type: {appointment.Shift?.GetType()})");
+            
             var result = new
             {
                 id = appointment.Id,
                 appointmentDate = appointment.AppointmentDate.ToString("dd/MM/yyyy"),
                 startTime = SafeTimeSpanToString(appointment.StartTime),
                 endTime = SafeTimeSpanToString(appointment.EndTime),
+                shift = appointment.Shift ?? string.Empty,
                 status = appointment.Status.ToString(),
                 statusText = GetStatusText(appointment.Status),
                 note = appointment.Note,
@@ -2100,6 +2106,53 @@ public class AppointmentController : ControllerBase
             {
                 success = false,
                 message = "Đã xảy ra lỗi khi lấy chi tiết lịch hẹn",
+                error = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Cập nhật ca khám cho lịch hẹn
+    /// </summary>
+    /// <param name="appointmentId">ID lịch hẹn</param>
+    /// <param name="shift">Ca khám</param>
+    /// <returns>Kết quả cập nhật</returns>
+    [HttpPut("patient-appointments/{appointmentId}/shift")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.NotFound)]
+    public async Task<IActionResult> UpdateAppointmentShift(int appointmentId, [FromBody] string shift)
+    {
+        try
+        {
+            var appointment = await _context.Appointments.FindAsync(appointmentId);
+            if (appointment == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Không tìm thấy lịch hẹn"
+                });
+            }
+
+            appointment.Shift = shift;
+            appointment.UpdateDate = DateTime.Now;
+            
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Cập nhật ca khám thành công",
+                data = new { shift = shift }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Đã xảy ra lỗi khi cập nhật ca khám",
                 error = ex.Message
             });
         }
@@ -2518,7 +2571,7 @@ public class AppointmentController : ControllerBase
     #endregion
 
     // Helper method để lấy text trạng thái
-    private string GetStatusText(AppointmentStatus status)
+    private static string GetStatusText(AppointmentStatus status)
     {
         return status switch
         {
@@ -4136,4 +4189,300 @@ public class AppointmentController : ControllerBase
             });
         }
     }
+
+    #region Week Calendar API Endpoints
+
+    /// <summary>
+    /// Lấy lịch hẹn theo tuần cho giao diện calendar (không cần token)
+    /// </summary>
+    /// <param name="userId">ID của user</param>
+    /// <param name="startDate">Ngày bắt đầu tuần (yyyy-MM-dd)</param>
+    /// <param name="endDate">Ngày kết thúc tuần (yyyy-MM-dd)</param>
+    /// <returns>Danh sách lịch hẹn trong tuần</returns>
+    [HttpGet("week-calendar")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> GetWeekCalendarAppointments(
+        [FromQuery] int userId,
+        [FromQuery] string startDate,
+        [FromQuery] string endDate)
+    {
+        try
+        {
+            // Parse dates
+            if (!DateTime.TryParse(startDate, out DateTime start) || !DateTime.TryParse(endDate, out DateTime end))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Định dạng ngày không hợp lệ. Sử dụng yyyy-MM-dd"
+                });
+            }
+
+            // Lấy tất cả bệnh nhân của user
+            var patients = await _context.Patients.Where(p => p.UserId == userId).ToListAsync();
+            if (patients == null || patients.Count == 0)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "Không có lịch hẹn nào cho user này",
+                    data = new
+                    {
+                        appointments = new List<object>(),
+                        weekInfo = new
+                        {
+                            startDate = start.ToString("dd/MM/yyyy"),
+                            endDate = end.ToString("dd/MM/yyyy"),
+                            totalDays = 7
+                        }
+                    }
+                });
+            }
+
+            var patientIds = patients.Select(p => p.Id).ToList();
+
+            // Lấy lịch hẹn trong khoảng thời gian
+            var appointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Clinic)
+                .Include(a => a.Service)
+                .Include(a => a.Doctor_Appointments)
+                    .ThenInclude(da => da.Doctor)
+                .Where(a => patientIds.Contains(a.PatientId) && 
+                           a.AppointmentDate >= start && 
+                           a.AppointmentDate <= end)
+                .OrderBy(a => a.AppointmentDate)
+                .ThenBy(a => a.StartTime)
+                .Select(a => new
+                {
+                    id = a.Id,
+                    appointmentDate = a.AppointmentDate.ToString("dd/MM/yyyy"),
+                    startTime = SafeTimeSpanToString(a.StartTime),
+                    endTime = SafeTimeSpanToString(a.EndTime),
+                    shift = a.Shift ?? string.Empty,
+                    status = a.Status.ToString(),
+                    statusText = GetStatusText(a.Status),
+                    note = a.Note ?? string.Empty,
+                    isSend = a.isSend,
+                    patient = a.Patient != null ? new
+                    {
+                        id = a.Patient.Id,
+                        name = a.Patient.Name ?? string.Empty,
+                        phone = a.Patient.Phone ?? string.Empty,
+                        gender = a.Patient.Gender != null ? a.Patient.Gender.ToString() : string.Empty
+                    } : null,
+                    clinic = a.Clinic != null ? new
+                    {
+                        id = a.Clinic.Id,
+                        name = a.Clinic.Name ?? string.Empty,
+                        address = a.Clinic.Address ?? string.Empty
+                    } : null,
+                    service = a.Service != null ? new
+                    {
+                        id = a.Service.Id,
+                        name = a.Service.Name ?? string.Empty,
+                        price = a.Service.Price != null ? a.Service.Price : 0
+                    } : null,
+                    doctors = a.Doctor_Appointments != null ? a.Doctor_Appointments
+                        .Where(da => da.Doctor != null)
+                        .Select(da => new {
+                            id = da.Doctor.Id,
+                            name = da.Doctor.Name ?? string.Empty,
+                            imageUrl = da.Doctor.ImageURL ?? string.Empty
+                        }).Cast<object>().ToList() : new List<object>(),
+                    createDate = a.CreateDate.ToString("dd/MM/yyyy HH:mm"),
+                    updateDate = a.UpdateDate.HasValue ? a.UpdateDate.Value.ToString("dd/MM/yyyy HH:mm") : null
+                })
+                .ToListAsync();
+
+            // Tính toán thống kê tuần
+            var weekStats = new
+            {
+                total = appointments.Count,
+                scheduled = appointments.Count(a => a.status == "Scheduled"),
+                completed = appointments.Count(a => a.status == "Completed"),
+                cancelled = appointments.Count(a => a.status == "Cancelled"),
+                late = appointments.Count(a => a.status == "Late"),
+                inProgress = appointments.Count(a => a.status == "InProgress")
+            };
+
+            return Ok(new
+            {
+                success = true,
+                message = $"Đã tải {appointments.Count} lịch hẹn cho tuần từ {start:dd/MM/yyyy} đến {end:dd/MM/yyyy}",
+                data = new
+                {
+                    appointments = appointments,
+                    weekInfo = new
+                    {
+                        startDate = start.ToString("dd/MM/yyyy"),
+                        endDate = end.ToString("dd/MM/yyyy"),
+                        totalDays = 7
+                    },
+                    statistics = weekStats
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("API ERROR in GetWeekCalendarAppointments: " + ex.ToString());
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Đã xảy ra lỗi khi lấy lịch hẹn tuần",
+                error = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Lấy thống kê lịch hẹn theo tuần (không cần token)
+    /// </summary>
+    /// <param name="userId">ID của user</param>
+    /// <param name="startDate">Ngày bắt đầu tuần</param>
+    /// <param name="endDate">Ngày kết thúc tuần</param>
+    /// <returns>Thống kê lịch hẹn theo ngày trong tuần</returns>
+    [HttpGet("week-statistics")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> GetWeekStatistics(
+        [FromQuery] int userId,
+        [FromQuery] string startDate,
+        [FromQuery] string endDate)
+    {
+        try
+        {
+            // Parse dates
+            if (!DateTime.TryParse(startDate, out DateTime start) || !DateTime.TryParse(endDate, out DateTime end))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Định dạng ngày không hợp lệ"
+                });
+            }
+
+            // Lấy tất cả bệnh nhân của user
+            var patients = await _context.Patients.Where(p => p.UserId == userId).ToListAsync();
+            if (patients == null || patients.Count == 0)
+            {
+                return Ok(new
+                {
+                    success = true,
+                    message = "Không có dữ liệu cho user này",
+                    data = new List<object>()
+                });
+            }
+
+            var patientIds = patients.Select(p => p.Id).ToList();
+
+            // Tạo danh sách các ngày trong tuần
+            var weekDays = new List<object>();
+            var currentDate = start;
+
+            while (currentDate <= end)
+            {
+                var dayAppointments = await _context.Appointments
+                    .Where(a => patientIds.Contains(a.PatientId) && 
+                               a.AppointmentDate.Date == currentDate.Date)
+                    .ToListAsync();
+
+                var dayStats = new
+                {
+                    date = currentDate.ToString("dd/MM/yyyy"),
+                    dayOfWeek = currentDate.ToString("dddd", new System.Globalization.CultureInfo("vi-VN")),
+                    total = dayAppointments.Count,
+                    scheduled = dayAppointments.Count(a => a.Status == AppointmentStatus.Scheduled),
+                    completed = dayAppointments.Count(a => a.Status == AppointmentStatus.Completed),
+                    cancelled = dayAppointments.Count(a => a.Status == AppointmentStatus.Cancelled),
+                    late = dayAppointments.Count(a => a.Status == AppointmentStatus.Late),
+                    inProgress = dayAppointments.Count(a => a.Status == AppointmentStatus.InProgress)
+                };
+
+                weekDays.Add(dayStats);
+                currentDate = currentDate.AddDays(1);
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Thống kê tuần đã được tải thành công",
+                data = weekDays
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("API ERROR in GetWeekStatistics: " + ex.ToString());
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Đã xảy ra lỗi khi lấy thống kê tuần",
+                error = ex.Message
+            });
+        }
+    }
+
+    /// <summary>
+    /// Lấy thông tin user hiện tại cho calendar
+    /// </summary>
+    /// <returns>Thông tin user và cài đặt calendar</returns>
+    [Authorize]
+    [HttpGet("calendar-user-info")]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(object), (int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> GetCalendarUserInfo()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+            if (user == null) return NotFound();
+
+            var patient = await _context.Patients
+                .Where(p => p.UserId == user.Id)
+                .OrderBy(p => p.Id)
+                .FirstOrDefaultAsync();
+
+            var userData = new
+            {
+                id = user.Id,
+                email = user.Email,
+                name = patient?.Name ?? "N/A",
+                phone = patient?.Phone ?? "N/A",
+                gender = patient?.Gender.ToString() ?? "N/A",
+                dob = patient?.Dob.ToString("yyyy-MM-dd") ?? "N/A",
+                cccd = patient?.CCCD ?? "N/A",
+                address = patient?.Address ?? "N/A",
+                calendarSettings = new
+                {
+                    defaultView = "week",
+                    timeFormat = "24h",
+                    language = "vi",
+                    timezone = "Asia/Ho_Chi_Minh"
+                }
+            };
+
+            return Ok(new
+            {
+                success = true,
+                message = "Thông tin user đã được tải thành công",
+                data = userData
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("API ERROR in GetCalendarUserInfo: " + ex.ToString());
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Đã xảy ra lỗi khi lấy thông tin user",
+                error = ex.Message
+            });
+        }
+    }
+
+    #endregion
 } 
