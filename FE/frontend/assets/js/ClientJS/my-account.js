@@ -250,22 +250,67 @@ document.getElementById("btnSubmitPayment").addEventListener("click", async func
   const notes = document.getElementById("notes").value;
   const method = document.getElementById("method").value;
 
-  const now = new Date().toISOString(); // ngày hiện tại ISO format
+  // Check if VNPay is selected
+  if (method === "VNPay") {
+    await processVNPayPayment(invoiceId, amount, payer, notes);
+  } else {
+    await processRegularPayment(invoiceId, amount, method, payer, notes);
+  }
+});
 
-const paymentData = {
-  invoiceId: parseInt(invoiceId),
-  amount: parseFloat(amount),
-  paymentMethod: method,
-  payer: payer,
-  notes: notes,
-  paymentDate: now,
-  name: "string",
-  code: "string",
-  createDate: now,
-  updateDate: now,
-  createBy: "string",
-  updateBy: "string"
-};
+async function processVNPayPayment(invoiceId, amount, payer, notes) {
+  try {
+    const vnpayRequest = {
+      invoiceId: parseInt(invoiceId),
+      amount: parseFloat(amount),
+      orderDescription: `Thanh toán hóa đơn #${invoiceId} - ${notes}`,
+      customerEmail: "customer@example.com", // You can get this from user profile
+      customerPhone: "0123456789", // You can get this from user profile
+      customerName: payer
+    };
+
+    const response = await fetch(`https://localhost:7097/api/Payment/vnpay-create-payment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(vnpayRequest)
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        // Redirect to VNPay payment page
+        window.location.href = result.paymentUrl;
+      } else {
+        alert("Lỗi tạo URL thanh toán VNPay: " + result.message);
+      }
+    } else {
+      alert("Lỗi kết nối đến VNPay!");
+    }
+  } catch (err) {
+    console.error("Lỗi khi thanh toán VNPay:", err);
+    alert("Có lỗi xảy ra khi thanh toán VNPay.");
+  }
+}
+
+async function processRegularPayment(invoiceId, amount, method, payer, notes) {
+  const now = new Date().toISOString();
+
+  const paymentData = {
+    invoiceId: parseInt(invoiceId),
+    amount: parseFloat(amount),
+    paymentMethod: method,
+    payer: payer,
+    notes: notes,
+    paymentDate: now,
+    name: "string",
+    code: "string",
+    createDate: now,
+    updateDate: now,
+    createBy: "string",
+    updateBy: "string"
+  };
 
   try {
     const res = await fetch(`https://localhost:7097/api/Payment/make-payment`, {
@@ -287,7 +332,7 @@ const paymentData = {
     console.error("Lỗi khi thanh toán:", err);
     alert("Có lỗi xảy ra khi thanh toán.");
   }
-});
+}
 loadInvoices();
 
 function openFeedbackModal(appointmentId) {

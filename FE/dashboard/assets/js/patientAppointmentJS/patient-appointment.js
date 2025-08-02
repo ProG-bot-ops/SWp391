@@ -509,6 +509,14 @@ class WeekCalendarManager {
         const clinicName = appointment.clinic?.name ? `<div class="appointment-clinic">${appointment.clinic.name}</div>` : '';
         const serviceName = appointment.service?.name ? `<div class="appointment-service">${appointment.service.name}</div>` : '';
         
+        // Only show cancel button for appointments that can be cancelled
+        const canCancel = appointment.status === 'Scheduled' || appointment.status === 'InProgress';
+        const cancelButton = canCancel ? `
+            <button title="Hủy lịch hẹn" onclick="cancelAppointment('${appointment.id}')" class="cancel-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        ` : '';
+        
         card.innerHTML = `
             <div class="appointment-card-header">
                 <div class="appointment-info">
@@ -526,6 +534,7 @@ class WeekCalendarManager {
                     <button title="Xem chi tiết" onclick="viewAppointment('${appointment.id}')">
                         <i class="fas fa-external-link-alt"></i>
                     </button>
+                    ${cancelButton}
                 </div>
             </div>
             <div class="appointment-status ${this.getStatusClass(appointment.status)}">${statusText}</div>
@@ -1435,5 +1444,71 @@ window.updateAppointmentShift = function(appointmentId, shift) {
             });
     } else {
         console.log('❌ WeekCalendarManager not initialized');
+    }
+};
+
+// Global cancel appointment function
+window.cancelAppointment = function(appointmentId) {
+    // Show confirmation dialog
+    const confirmed = confirm('Nếu hủy thì không thể khôi phục, bạn có chắc chắn không?');
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    if (window.weekCalendarManager) {
+        // Show loading state
+        const cancelButton = document.querySelector(`button[onclick="cancelAppointment('${appointmentId}')"]`);
+        if (cancelButton) {
+            const originalHTML = cancelButton.innerHTML;
+            cancelButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            cancelButton.disabled = true;
+            
+            // Call API to cancel appointment
+            window.weekCalendarManager.apiService.cancelAppointment(appointmentId, 'Hủy bởi bệnh nhân')
+                .then(response => {
+                    if (response && response.success) {
+                        console.log('✅ Lịch hẹn đã được hủy:', appointmentId);
+                        
+                        // Show success message
+                        const successAlert = document.createElement('div');
+                        successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                        successAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                        successAlert.innerHTML = `
+                            <strong>Thành công!</strong> Lịch hẹn đã được hủy thành công!
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        document.body.appendChild(successAlert);
+                        
+                        // Auto remove after 3 seconds
+                        setTimeout(() => {
+                            if (successAlert.parentNode) {
+                                successAlert.parentNode.removeChild(successAlert);
+                            }
+                        }, 3000);
+                        
+                        // Refresh calendar to show updated status
+                        window.weekCalendarManager.loadAppointments();
+                        window.weekCalendarManager.loadWeekStatistics();
+                    } else {
+                        console.error('❌ Lỗi hủy lịch hẹn:', response?.message);
+                        alert('Lỗi hủy lịch hẹn: ' + (response?.message || 'Lỗi không xác định'));
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Lỗi API:', error);
+                    alert('Lỗi kết nối API khi hủy lịch hẹn');
+                })
+                .finally(() => {
+                    // Restore button state
+                    if (cancelButton) {
+                        cancelButton.innerHTML = originalHTML;
+                        cancelButton.disabled = false;
+                    }
+                });
+        }
+    } else {
+        console.log('❌ WeekCalendarManager not initialized');
+        alert('Lỗi: Không thể khởi tạo hệ thống');
     }
 }; 

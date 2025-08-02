@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thất bại - Hospital Management</title>
+    <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
+    <link href="assets/css/core.css" rel="stylesheet">
+    <style>
+        .failed-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+        .failed-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .failed-icon {
+            width: 80px;
+            height: 80px;
+            background: #dc3545;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            color: white;
+            font-size: 2rem;
+        }
+        .btn-primary {
+            background: #ff6b6b;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #ee5a24;
+            transform: translateY(-2px);
+        }
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="failed-container">
+        <div class="failed-card">
+            <div class="failed-icon">
+                <i class="fas fa-times"></i>
+            </div>
+            <h2 class="mb-3">Thanh toán thất bại!</h2>
+            <p class="text-muted mb-4">Đã xảy ra lỗi trong quá trình thanh toán.</p>
+            
+            <div class="error-message" id="errorMessage">
+                <!-- Will be populated by JavaScript -->
+            </div>
+            
+            <div class="d-grid gap-2">
+                <a href="index.html" class="btn btn-primary">Về trang chủ</a>
+                <a href="my-account.html" class="btn btn-outline-primary">Thử lại</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
+    <script src="assets/js/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const message = urlParams.get('message');
+
+        // Populate the error message
+        document.getElementById('errorMessage').textContent = message || 'Đã xảy ra lỗi không xác định trong quá trình thanh toán.';
+    </script>
+</body>
+</html> 

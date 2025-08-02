@@ -943,6 +943,10 @@ public class ApplicationDBContext : DbContext
             entity.Property(a => a.Payer).IsRequired().HasMaxLength(100);
             entity.Property(a => a.Notes).IsRequired().HasMaxLength(100);
             
+            entity.Property(a => a.Status).IsRequired()
+                .HasConversion(status => (int)status,  // Lưu số nguyên vào database
+                value => (SWP391_SE1914_ManageHospital.Ultility.Status.PaymentStatus)value);
+            
             entity.HasMany(d => d.Payment_Invoices)
                 .WithOne(a => a.Payment)
                 .HasForeignKey(a => a.PaymentId).OnDelete(DeleteBehavior.Cascade);

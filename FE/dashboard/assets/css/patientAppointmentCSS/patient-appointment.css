@@ -722,6 +722,22 @@
     color: #007bff;
 }
 
+/* Cancel button specific styling */
+.appointment-card-actions .cancel-btn {
+    color: #dc3545;
+}
+
+.appointment-card-actions .cancel-btn:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.appointment-card-actions .cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .appointment-status {
     font-size: 11px;
     font-weight: 600;

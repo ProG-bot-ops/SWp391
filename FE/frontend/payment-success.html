@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán thành công - Hospital Management</title>
+    <link href="assets/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
+    <link href="assets/css/core.css" rel="stylesheet">
+    <style>
+        .success-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            color: white;
+            font-size: 2rem;
+        }
+        .btn-primary {
+            background: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-card">
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2 class="mb-3">Thanh toán thành công!</h2>
+            <p class="text-muted mb-4">Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.</p>
+            
+            <div class="payment-details mb-4">
+                <div class="row text-start">
+                    <div class="col-6">
+                        <strong>Mã đơn hàng:</strong>
+                    </div>
+                    <div class="col-6" id="orderId">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="row text-start">
+                    <div class="col-6">
+                        <strong>Số tiền:</strong>
+                    </div>
+                    <div class="col-6" id="amount">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                <div class="row text-start">
+                    <div class="col-6">
+                        <strong>Mã giao dịch:</strong>
+                    </div>
+                    <div class="col-6" id="transactionId">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <a href="index.html" class="btn btn-primary">Về trang chủ</a>
+                <a href="my-account.html" class="btn btn-outline-primary">Xem tài khoản</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/vendor/jquery/jquery.min.js"></script>
+    <script src="assets/js/bootstrap/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+        const amount = urlParams.get('amount');
+        const transactionId = urlParams.get('transactionId');
+
+        // Populate the details
+        document.getElementById('orderId').textContent = orderId || 'N/A';
+        document.getElementById('amount').textContent = amount ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount) : 'N/A';
+        document.getElementById('transactionId').textContent = transactionId || 'N/A';
+    </script>
+</body>
+</html> 

@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const email = form.querySelector('input[name="user-name"]').value;
     const password = form.querySelector('input[name="pwd"]').value;
-    const userType = form.querySelector('input[name="userType"]')?.value;
+    const userType = form.querySelector('select[name="userType"]')?.value || form.querySelector('input[name="userType"]')?.value;
 
     if (!email || !password || !userType) {
       alert('Vui lòng nhập đầy đủ thông tin.');
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Chuyển hướng theo userType
       switch (userType) {
         case 'Admin':
-          window.location.href = '../index.html';
+          window.location.href = '../appointment.html';
           break;
         case 'Doctor':
           try {
@@ -55,13 +55,13 @@ document.addEventListener('DOMContentLoaded', function () {
           window.location.href = '../doctor-page.html';
           break;
         case 'Patient':
-          window.location.href = '/frontend/index.html';
+          window.location.href = '../frontend/index.html';
           break;
         case 'Nurse':
-          window.location.href = '/frontend/nurse-ui.html';
+          window.location.href = '../frontend/nurse-ui.html';
           break;
         default:
-          window.location.href = '/home';
+          window.location.href = '../frontend/index.html';
       }
     } catch (err) {
       alert('Lỗi kết nối: ' + err.message);

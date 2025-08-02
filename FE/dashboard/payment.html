@@ -16,7 +16,7 @@
       data-setting="app_name"
       data-rightJoin=" Clinic And Patient Management Dashboard"
     >
-      KiviCare Clinic And Patient Management Dashboard
+      G-Care Clinic And Patient Management Dashboard
     </title>
     <meta
       name="description"
@@ -673,7 +673,7 @@
                     ></circle>
                   </svg>
                 </i>
-                <span class="item-name">Hóa đơn</span>
+                <span class="item-name">Thanh toán</span>
               </a>
             </li>
             <li>
@@ -902,7 +902,7 @@
                             id="defaultAuth"
                           >
                             <li class="nav-item">
-                              <a class="nav-link" href="./auth/sign-in.html"
+                              <a class="nav-link" href="../frontend/login.html"
                                 >Sign In</a
                               >
                             </li>
@@ -2130,7 +2130,7 @@
                       <hr class="dropdown-divider" />
                     </li>
                     <li>
-                      <a class="dropdown-item" href="./auth/sign-in.html"
+                      <a class="dropdown-item" href="../frontend/login.html"
                         >Logout</a
                       >
                     </li>
@@ -2172,49 +2172,43 @@
               stroke-linejoin="round"
             ></path>
           </svg>
-          <span class="head-title fw-500 mt-1">Payment</span>
+          <span class="head-title fw-500 mt-1">Thanh toán</span>
         </div>
         <div class="card">
           <div
             class="card-header d-flex align-items-center justify-content-between flex-wrap gap-3"
           >
             <div>
-              <h4>All Payments</h4>
-              <span>More Than 400+ Payment</span>
+              <h4>Tất cả thanh toán</h4>
+              <span>Hơn 400+ thanh toán</span>
             </div>
             <div class="d-flex align-items-center">
-              <div class="dropdown text-end">
-                <button
-                  class="dropdown btn btn-light-subtle border text-body py-2 px-3"
-                  id="dropdownMenuButton2"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false"
-                >
-                  <span class="fw-500">Month</span>
-                  <svg
-                    width="8"
-                    class="ms-1 transform-up"
-                    viewBox="0 0 12 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      clip-rule="evenodd"
-                      d="M6 5.08579L10.2929 0.792893C10.6834 0.402369 11.3166 0.402369 11.7071 0.792893C12.0976 1.18342 12.0976 1.81658 11.7071 2.20711L6.70711 7.20711C6.31658 7.59763 5.68342 7.59763 5.29289 7.20711L0.292893 2.20711C-0.0976311 1.81658 -0.0976311 1.18342 0.292893 0.792893C0.683418 0.402369 1.31658 0.402369 1.70711 0.792893L6 5.08579Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                <ul
-                  class="dropdown-menu dropdown-menu-soft-primary sub-dropdown"
-                  aria-labelledby="dropdownMenuButton2"
-                >
-                  <li><a class="dropdown-item active" href="#">January</a></li>
-                  <li><a class="dropdown-item" href="#">February</a></li>
-                  <li><a class="dropdown-item" href="#">March</a></li>
-                </ul>
-              </div>
+              <button
+                class="btn btn-primary"
+                data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasPaymentAdd"
+                type="button"
+              >
+                <span class="btn-inner">
+                  <span class="icon d-inline-block align-middle me-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </span>
+                  <span class="text d-inline-block align-middle">Thêm hóa đơn mới</span>
+                </span>
+              </button>
             </div>
           </div>
           <div class="card-body pt-0">
@@ -2224,567 +2218,17 @@
               >
                 <thead class="table-dark">
                   <tr>
-                    <th>Sr. No.</th>
-                    <th>Customer Name</th>
-                    <th>Date & Time</th>
-                    <th>Payment Method</th>
-                    <th>Amount</th>
-                    <th>Payment Status</th>
-                    <th>Action</th>
+                    <th>STT</th>
+                    <th>Tên khách hàng</th>
+                    <th>Ngày & Giờ</th>
+                    <th>Phương thức thanh toán</th>
+                    <th>Số tiền</th>
+                    <th>Trạng thái thanh toán</th>
+                    <th>Thao tác</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr data-item="list">
-                    <th scope="row">1</th>
-                    <td>Isabella Brown</td>
-                    <td>24 May At 10:00 AM</td>
-                    <td>Cash</td>
-                    <td>$500</td>
-                    <td>Completed</td>
-                    <td>
-                      <a
-                        class="d-inline-block pe-2"
-                        data-bs-toggle="offcanvas"
-                        href="#offcanvasPaymentEdit"
-                        aria-controls="offcanvasPaymentEdit"
-                      >
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr data-item="list">
-                    <th scope="row">2</th>
-                    <td>Daniel White</td>
-                    <td>7 July At 02:15 PM</td>
-                    <td>Online</td>
-                    <td>$410</td>
-                    <td>Completed</td>
-                    <td>
-                      <a href="#" class="d-inline-block pe-2">
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr data-item="list">
-                    <th scope="row">3</th>
-                    <td>Ashley Garcia</td>
-                    <td>23 July At 11:00 AM</td>
-                    <td>Online</td>
-                    <td>$150</td>
-                    <td>Completed</td>
-                    <td>
-                      <a href="#" class="d-inline-block pe-2">
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr data-item="list">
-                    <th>4</th>
-                    <td>Jonathan Thomas</td>
-                    <td>13 Aug At 04:30 PM</td>
-                    <td>Online</td>
-                    <td>$390</td>
-                    <td>Completed</td>
-                    <td>
-                      <a href="#" class="d-inline-block pe-2">
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr data-item="list">
-                    <th>5</th>
-                    <td>Sophia Wilson</td>
-                    <td>24 Aug At 06:45 PM</td>
-                    <td>Cash</td>
-                    <td>$235</td>
-                    <td>Completed</td>
-                    <td>
-                      <a href="#" class="d-inline-block pe-2">
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr data-item="list">
-                    <th>6</th>
-                    <td>Benjamin Chen</td>
-                    <td>09 Sep At 01:00 PM</td>
-                    <td>Cash</td>
-                    <td>$220</td>
-                    <td>Completed</td>
-                    <td>
-                      <a href="#" class="d-inline-block pe-2">
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
-                  <tr data-item="list">
-                    <th>7</th>
-                    <td>Samantha Davis</td>
-                    <td>23 Sep At 03:30 PM</td>
-                    <td>Online</td>
-                    <td>$370</td>
-                    <td>Completed</td>
-                    <td>
-                      <a href="#" class="d-inline-block pe-2">
-                        <span class="text-success">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M9.31055 14.3321H14.75"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              fill-rule="evenodd"
-                              clip-rule="evenodd"
-                              d="M8.58501 1.84609C9.16674 1.15084 10.2125 1.04889 10.9222 1.6188C10.9614 1.64972 12.2221 2.62909 12.2221 2.62909C13.0017 3.10039 13.244 4.10233 12.762 4.86694C12.7365 4.90789 5.60896 13.8234 5.60896 13.8234C5.37183 14.1192 5.01187 14.2938 4.62718 14.298L1.89765 14.3323L1.28265 11.7292C1.1965 11.3632 1.28265 10.9788 1.51978 10.683L8.58501 1.84609Z"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M7.26562 3.50073L11.3548 6.64108"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                      <a href="#" class="d-inline-block ps-2 delete-btn">
-                        <span class="text-danger">
-                          <svg
-                            width="15"
-                            height="16"
-                            viewBox="0 0 15 16"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M12.4938 6.10107C12.4938 6.10107 12.0866 11.1523 11.8503 13.2801C11.7378 14.2963 11.1101 14.8918 10.0818 14.9106C8.12509 14.9458 6.16609 14.9481 4.21009 14.9068C3.22084 14.8866 2.60359 14.2836 2.49334 13.2853C2.25559 11.1388 1.85059 6.10107 1.85059 6.10107"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M13.5312 3.67969H0.812744"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                            <path
-                              d="M11.0804 3.67974C10.4917 3.67974 9.98468 3.26349 9.86918 2.68674L9.68693 1.77474C9.57443 1.35399 9.19343 1.06299 8.75918 1.06299H5.58443C5.15018 1.06299 4.76918 1.35399 4.65668 1.77474L4.47443 2.68674C4.35893 3.26349 3.85193 3.67974 3.26318 3.67974"
-                              stroke="currentColor"
-                              stroke-width="1.5"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      </a>
-                    </td>
-                  </tr>
+                <tbody id="paymentTableBody">
+                 
                 </tbody>
               </table>
             </div>
@@ -2793,21 +2237,23 @@
             <div
               class="d-flex justify-content-between align-items-center gap-3 flex-wrap"
             >
-              <ul class="page-number m-0 p-0 list-unstyled d-flex gap-2">
-                <li class="text-center bg-primary text-white rounded">1</li>
-                <li class="text-center bg-primary-subtle text-primary rounded">
-                  2
-                </li>
-                <li class="text-center text-primary rounded fs-1">...</li>
-                <li class="text-center bg-primary-subtle text-primary rounded">
-                  6
-                </li>
-              </ul>
+              <div class="pagination-container">
+                <ul class="page-number m-0 p-0 list-unstyled d-flex gap-2">
+                  <li class="text-center bg-primary text-white rounded">1</li>
+                  <li class="text-center bg-primary-subtle text-primary rounded">
+                    2
+                  </li>
+                  <li class="text-center text-primary rounded fs-1">...</li>
+                  <li class="text-center bg-primary-subtle text-primary rounded">
+                    6
+                  </li>
+                </ul>
+              </div>
               <div>
                 <button class="btn btn-secondary text-white me-3" type="button">
                   <span class="btn-inner">
                     <span class="text d-inline-block align-middle"
-                      >Previous</span
+                      >Trước</span
                     >
                     <span class="icon d-inline-block align-middle ms-1 ps-2">
                       <svg
@@ -2827,7 +2273,7 @@
                 </button>
                 <button class="btn btn-primary me-3" type="button">
                   <span class="btn-inner">
-                    <span class="text d-inline-block align-middle">Next</span>
+                    <span class="text d-inline-block align-middle">Tiếp</span>
                     <span class="icon d-inline-block align-middle ms-1 ps-2">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -2849,15 +2295,16 @@
           </div>
         </div>
 
+        <!-- Add Payment Offcanvas -->
         <div
           class="offcanvas offcanvas-end"
           tabindex="-1"
-          id="offcanvasPaymentEdit"
-          aria-labelledby="offcanvasPaymentEditLabel"
+          id="offcanvasPaymentAdd"
+          aria-labelledby="offcanvasPaymentAddLabel"
         >
           <div class="offcanvas-header border-bottom">
-            <h3 class="offcanvas-title" id="offcanvasPaymentEditLabel">
-              Edit Payment
+            <h3 class="offcanvas-title" id="offcanvasPaymentAddLabel">
+              Thêm hóa đơn mới
             </h3>
             <button
               type="button"
@@ -2866,73 +2313,109 @@
               aria-label="Close"
             ></button>
           </div>
-          <div class="offcanvas-body">
-            <div class="form-group col-md-12">
-              <label class="form-label" for="Name"
-                >Customer Name <span class="text-danger">*</span></label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="Name"
-                value="sabella Brown"
-              />
-            </div>
-            <div class="form-group col-md-12">
-              <label class="form-label" for="datetime"
-                >Date And Time <span class="text-danger">*</span></label
-              >
-              <input
-                type="text"
-                id="datetime"
-                class="form-control date_flatpicker flatpickr-input active"
-                value="2023-05-24"
-                readonly="readonly"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="payment-method"
-                >Payment Method <span class="text-danger">*</span></label
-              >
-              <select
-                class="form-control select2-basic-single"
-                id="payment-method"
-              >
-                <option>Online</option>
-                <option selected="selected">Cash</option>
-              </select>
-            </div>
-            <div class="form-group col-md-12">
-              <label class="form-label" for="Amount"
-                >Amount <span class="text-danger">*</span></label
-              >
-              <input
-                type="text"
-                class="form-control"
-                id="Amount"
-                value="$500"
-              />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="payment_id"
-                >Payment Status <span class="text-danger">*</span></label
-              >
-              <select class="form-control select2-basic-single" id="payment_id">
-                <option>Pending</option>
-                <option selected="selected">Completed</option>
-                <option>Failed</option>
-                <option>Refunded</option>
-                <option>Authorized</option>
-                <option>Voided</option>
-                <option>Overdue</option>
-              </select>
-            </div>
+                      <div class="offcanvas-body">
+            <form id="addPaymentForm">
+              <div class="form-group col-md-12">
+                <label class="form-label" for="addAppointmentSelect"
+                  >Chọn cuộc hẹn đang khám <span class="text-danger">*</span></label
+                >
+                <select
+                  class="form-control select2-basic-single"
+                  id="addAppointmentSelect"
+                  name="appointmentId"
+                  required
+                >
+                  <option value="">Chọn cuộc hẹn đang khám</option>
+                </select>
+              </div>
+              <div class="form-group col-md-12">
+                <label class="form-label" for="addPatientName"
+                  >Tên bệnh nhân</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="addPatientName"
+                  name="patientName"
+                  readonly
+                  placeholder="Tên bệnh nhân sẽ hiển thị sau khi chọn cuộc hẹn"
+                />
+              </div>
+              <div class="form-group col-md-12">
+                <label class="form-label" for="addServiceName"
+                  >Dịch vụ</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="addServiceName"
+                  name="serviceName"
+                  readonly
+                  placeholder="Dịch vụ sẽ hiển thị sau khi chọn cuộc hẹn"
+                />
+              </div>
+              <div class="form-group col-md-12">
+                <label class="form-label" for="addPaymentDate"
+                  >Ngày thanh toán</label
+                >
+                <input
+                  type="text"
+                  id="addPaymentDate"
+                  name="paymentDate"
+                  class="form-control"
+                  readonly
+                  placeholder="Ngày hiện tại"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="addPaymentMethod"
+                  >Phương thức thanh toán <span class="text-danger">*</span></label
+                >
+                <select
+                  class="form-control select2-basic-single"
+                  id="addPaymentMethod"
+                  name="paymentMethod"
+                  required
+                >
+                  <option value="">Chọn phương thức thanh toán</option>
+                  <option value="Tiền mặt">Tiền mặt</option>
+                  <option value="Trực tuyến">Trực tuyến</option>
+                  <option value="Chuyển khoản">Chuyển khoản</option>
+                  <option value="Thẻ tín dụng">Thẻ tín dụng</option>
+                </select>
+              </div>
+              <div class="form-group col-md-12">
+                <label class="form-label" for="addAmount"
+                  >Số tiền</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="addAmount"
+                  name="amount"
+                  readonly
+                  placeholder="Số tiền sẽ hiển thị sau khi chọn cuộc hẹn"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="addNotes"
+                  >Ghi chú</label
+                >
+                <textarea
+                  class="form-control"
+                  id="addNotes"
+                  name="notes"
+                  rows="3"
+                  placeholder="Nhập ghi chú (tùy chọn)"
+                ></textarea>
+              </div>
+            </form>
           </div>
           <div class="offcanvas-footer border-top">
             <div class="d-grid d-md-flex gap-3 p-3">
-              <button type="submit" class="btn btn-primary d-block">
+              <button type="submit" class="btn btn-primary d-block" id="submitAddPayment">
                 <span class="btn-inner">
-                  <span class="text d-inline-block align-middle">Update</span>
+                  <span class="text d-inline-block align-middle">Thêm hóa đơn</span>
                   <span class="icon d-inline-block align-middle ms-1 ps-2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -2955,7 +2438,159 @@
                 data-bs-dismiss="offcanvas"
               >
                 <span class="btn-inner">
-                  <span class="text d-inline-block align-middle">Close</span>
+                  <span class="text d-inline-block align-middle">Đóng</span>
+                  <span class="icon d-inline-block align-middle ms-1 ps-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="8"
+                      height="8"
+                      viewBox="0 0 8 8"
+                      fill="none"
+                    >
+                      <path
+                        d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit Payment Offcanvas -->
+        <div
+          class="offcanvas offcanvas-end"
+          tabindex="-1"
+          id="offcanvasPaymentEdit"
+          aria-labelledby="offcanvasPaymentEditLabel"
+        >
+          <div class="offcanvas-header border-bottom">
+            <h3 class="offcanvas-title" id="offcanvasPaymentEditLabel">
+              Chỉnh sửa thanh toán
+            </h3>
+            <button
+              type="button"
+              class="btn-close text-reset"
+              data-bs-dismiss="offcanvas"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="offcanvas-body">
+            <form id="editPaymentForm">
+              <div class="form-group col-md-12">
+                <label class="form-label" for="Name"
+                  >Tên khách hàng <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="Name"
+                  name="payer"
+                  value="sabella Brown"
+                />
+              </div>
+            <div class="form-group col-md-12">
+              <label class="form-label" for="datetime"
+                >Ngày và giờ <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                id="datetime"
+                class="form-control"
+                value=""
+                readonly
+                style="background-color: #f8f9fa; cursor: not-allowed;"
+                title="Ngày thanh toán được tự động cập nhật thành thời gian hiện tại"
+              />
+              <small class="form-text text-muted">
+                <i class="fas fa-info-circle"></i> Ngày thanh toán được tự động cập nhật thành thời gian hiện tại
+              </small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="payment-method"
+                >Phương thức thanh toán <span class="text-danger">*</span></label
+              >
+              <select
+                class="form-control select2-basic-single"
+                id="payment-method"
+                name="paymentMethod"
+              >
+                <option value="Trực tuyến">Trực tuyến</option>
+                <option value="Tiền mặt" selected="selected">Tiền mặt</option>
+                <option value="Chuyển khoản">Chuyển khoản</option>
+                <option value="Thẻ tín dụng">Thẻ tín dụng</option>
+              </select>
+            </div>
+            <div class="form-group col-md-12">
+              <label class="form-label" for="Amount"
+                >Số tiền <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="Amount"
+                value="$500"
+                readonly
+                style="background-color: #f8f9fa; cursor: not-allowed;"
+                title="Số tiền được lấy từ dịch vụ của cuộc hẹn, không thể chỉnh sửa"
+              />
+              <small class="form-text text-muted">
+                <i class="fas fa-info-circle"></i> Số tiền được lấy từ dịch vụ của cuộc hẹn, không thể chỉnh sửa
+              </small>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="payment_id"
+                >Trạng thái thanh toán <span class="text-danger">*</span></label
+              >
+              <select class="form-control select2-basic-single" id="payment_id" name="status">
+                <option value="0">Đang chờ</option>
+                <option value="1" selected="selected">Hoàn thành</option>
+                <option value="2">Thất bại</option>
+                <option value="3">Hoàn tiền</option>
+              </select>
+            </div>
+            <div class="form-group col-md-12">
+              <label class="form-label" for="editNotes">Ghi chú</label>
+              <textarea
+                class="form-control"
+                id="editNotes"
+                name="notes"
+                rows="3"
+                placeholder="Nhập ghi chú (tùy chọn)"
+              ></textarea>
+            </div>
+            </form>
+          </div>
+          <div class="offcanvas-footer border-top">
+            <div class="d-grid d-md-flex gap-3 p-3">
+              <button type="submit" class="btn btn-primary d-block" id="submitEditPayment">
+                <span class="btn-inner">
+                  <span class="text d-inline-block align-middle">Cập nhật</span>
+                  <span class="icon d-inline-block align-middle ms-1 ps-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="8"
+                      height="8"
+                      viewBox="0 0 8 8"
+                      fill="none"
+                    >
+                      <path
+                        d="M7.32046 4.70834H4.74952V7.25698C4.74952 7.66734 4.41395 8 4 8C3.58605 8 3.25048 7.66734 3.25048 7.25698V4.70834H0.679545C0.293423 4.6687 0 4.34614 0 3.96132C0 3.5765 0.293423 3.25394 0.679545 3.21431H3.24242V0.673653C3.28241 0.290878 3.60778 0 3.99597 0C4.38416 0 4.70954 0.290878 4.74952 0.673653V3.21431H7.32046C7.70658 3.25394 8 3.5765 8 3.96132C8 4.34614 7.70658 4.6687 7.32046 4.70834Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </button>
+              <button
+                class="btn btn-secondary d-block"
+                type="button"
+                data-bs-dismiss="offcanvas"
+              >
+                <span class="btn-inner">
+                  <span class="text d-inline-block align-middle">Đóng</span>
                   <span class="icon d-inline-block align-middle ms-1 ps-2">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -2982,12 +2617,12 @@
           <ul class="left-panel list-inline mb-0 p-0">
             <li class="list-inline-item fw-500">
               <a class="footer-link" href="./extra/privacy-policy.html"
-                >Privacy Policy</a
+                >Chính sách bảo mật</a
               >
             </li>
             <li class="list-inline-item fw-500">
               <a class="footer-link" href="./extra/terms-of-service.html"
-                >Terms of Use</a
+                >Điều khoản sử dụng</a
               >
             </li>
           </ul>
@@ -4759,5 +4394,42 @@
       src="./assets/js/solid-icon-search-filter.js?v=1.4.1"
       defer
     ></script>
+    
+    <!-- Payment Management Script -->
+    <script src="./assets/js/payment.js" defer></script>
+    
+    <script>
+      // Set thời gian hiện tại cho trường datetime khi mở form edit
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, setting up datetime listener');
+        
+        // Listen for offcanvas show event
+        const editOffcanvas = document.getElementById('offcanvasPaymentEdit');
+        if (editOffcanvas) {
+          console.log('Found edit offcanvas, adding event listener');
+          editOffcanvas.addEventListener('shown.bs.offcanvas', function() {
+            console.log('Edit offcanvas shown, setting datetime');
+            const datetimeInput = document.getElementById('datetime');
+            if (datetimeInput) {
+              const now = new Date();
+              const formattedDate = now.toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              });
+              datetimeInput.value = formattedDate;
+              console.log('Set datetime to:', formattedDate);
+            } else {
+              console.error('Datetime input not found');
+            }
+          });
+        } else {
+          console.error('Edit offcanvas not found');
+        }
+      });
+    </script>
   </body>
 </html>

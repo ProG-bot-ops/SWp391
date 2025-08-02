@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const email = form.querySelector('input[name="user-name"]').value;
     const password = form.querySelector('input[name="pwd"]').value;
-    const userType = form.querySelector('input[name="userType"]')?.value;
+    const userType = form.querySelector('select[name="userType"]')?.value;
 
     // Kiểm tra userType hợp lệ
     const validUserTypes = ["Patient", "Doctor", "Nurse", "Admin"];
@@ -27,23 +27,23 @@ document.addEventListener('DOMContentLoaded', function () {
       if (window.userSessionManager) {
         const result = await window.userSessionManager.login(email, password, userType);
         if (result.success) {
-          // Chuyển hướng theo userType
-          switch (userType) {
-            case 'Admin':
-              window.location.href = '/dashboard/index.html';
-              break;
-            case 'Doctor':
-              window.location.href = '/dashboard/doctor-page.html';
-              break;
-            case 'Patient':
-              window.location.href = '/frontend/index.html';
-              break;
-            case 'Nurse':
-              window.location.href = '/frontend/nurse-ui.html';
-              break;
-            default:
-              window.location.href = '/home';
-          }
+                  // Chuyển hướng theo userType
+        switch (userType) {
+          case 'Admin':
+            window.location.href = '../dashboard/appointment.html';
+            break;
+          case 'Doctor':
+            window.location.href = '../dashboard/doctor-page.html';
+            break;
+          case 'Patient':
+            window.location.href = './index.html';
+            break;
+          case 'Nurse':
+            window.location.href = './nurse-ui.html';
+            break;
+          default:
+            window.location.href = './index.html';
+        }
         } else {
           alert(result.message);
         }
@@ -78,19 +78,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Chuyển hướng theo userType
         switch (userType) {
           case 'Admin':
-            window.location.href = '/dashboard/index.html';
+            window.location.href = '../dashboard/appointment.html';
             break;
           case 'Doctor':
-            window.location.href = '/dashboard/doctor-page.html';
+            window.location.href = '../dashboard/doctor-page.html';
             break;
           case 'Patient':
-            window.location.href = '/frontend/index.html';
+            window.location.href = './index.html';
             break;
           case 'Nurse':
-            window.location.href = '/frontend/nurse-ui.html';
+            window.location.href = './nurse-ui.html';
             break;
           default:
-            window.location.href = '/home';
+            window.location.href = './index.html';
         }
       }
     } catch (err) {

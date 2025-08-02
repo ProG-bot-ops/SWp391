@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using SWP391_SE1914_ManageHospital.Models.Services;
 using SWP391_SE1914_ManageHospital.Models.Services.Impl;
+using SWP391_SE1914_ManageHospital.Models.DTO.RequestDTO.Payment;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,7 +108,7 @@ builder.Services.AddScoped<IMedicineImportExcelService, MedicineImportExcelServi
 
 
 
-builder.Services.AddScoped<INurseService, NurseService>();
+// builder.Services.AddScoped<INurseService, NurseService>(); // Duplicate - removed
 builder.Services.AddScoped<INurseMapper, NurseMapper>();
 
 builder.Services.AddScoped<IMedicalRecordListMapper, MedicalRecordListMapper>();
@@ -130,6 +131,14 @@ builder.Services.AddScoped<IDoctorScheduleMapper, DoctorScheduleMapper>();
 builder.Services.AddScoped<IDoctorScheduleService, DoctorScheduleService>();
 
 builder.Services.AddScoped<IShiftRequestService, ShiftRequestService>();
+
+// VNPay Configuration
+builder.Services.Configure<VNPayConfig>(builder.Configuration.GetSection("VNPay"));
+builder.Services.AddScoped<IVNPayService, VNPayService>();
+
+// Payment Services
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 var hash = BCrypt.Net.BCrypt.HashPassword("Admin1234$");
 Console.WriteLine(hash);
@@ -260,6 +269,9 @@ if (app.Environment.IsDevelopment())
 
 
 app.UseCors("AllowAll");
+
+// Cấu hình static files để serve files từ wwwroot
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 app.UseAuthentication();

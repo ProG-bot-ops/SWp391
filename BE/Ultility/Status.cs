@@ -95,6 +95,8 @@ public static class Status
     {
         New = 0, Dispensed = 1, Cancelled = 2
     }
+
+    
     public enum PrescriptionDetailStatus
     {
         New = 0, Dispensed = 1, Cancelled = 2

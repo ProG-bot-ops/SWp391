@@ -87,7 +87,7 @@
       app_name: {
         target: '[data-setting="app_name"]',
         type: "text",
-        value: "Kivicare",
+        value: "G-care",
       },
 
       theme_scheme_direction: {

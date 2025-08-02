@@ -293,10 +293,10 @@ INSERT INTO prescriptiondetails (Id, Quantity, `Usage`, Status, PrescriptionId, 
 
 
 -- Insert sample payments
-INSERT INTO payments (Id, PaymentDate, Amount, PaymentMethod, Payer, Notes, Name, Code, CreateDate, UpdateDate, CreateBy, UpdateBy) VALUES
-(1, NOW(), 200000.00, 'Tiền mặt', 'David Miller', 'Thanh toán khám tổng quát', 'Thanh toán 1', 'PAY001', NOW(), NOW(), 'System', 'System'),
-(2, NOW(), 270000.00, 'Chuyển khoản', 'Lisa Garcia', 'Thanh toán khám chuyên khoa', 'Thanh toán 2', 'PAY002', NOW(), NOW(), 'System', 'System'),
-(3, NOW(), 400000.00, 'Thẻ tín dụng', 'James Rodriguez', 'Thanh toán siêu âm tim', 'Thanh toán 3', 'PAY003', NOW(), NOW(), 'System', 'System');
+INSERT INTO payments (Id, PaymentDate, Amount, PaymentMethod, Payer, Notes, Status, Name, Code, CreateDate, UpdateDate, CreateBy, UpdateBy) VALUES
+(1, NOW(), 200000.00, 'Tiền mặt', 'David Miller', 'Thanh toán khám tổng quát', 1, 'Thanh toán 1', 'PAY001', NOW(), NOW(), 'System', 'System'),
+(2, NOW(), 270000.00, 'Chuyển khoản', 'Lisa Garcia', 'Thanh toán khám chuyên khoa', 1, 'Thanh toán 2', 'PAY002', NOW(), NOW(), 'System', 'System'),
+(3, NOW(), 400000.00, 'Thẻ tín dụng', 'James Rodriguez', 'Thanh toán siêu âm tim', 1, 'Thanh toán 3', 'PAY003', NOW(), NOW(), 'System', 'System');
 
 
 
@@ -515,11 +515,3 @@ INSERT INTO doctor_shifts (DoctorId, ShiftDate, ShiftType, StartTime, EndTime, N
 (9, DATE_ADD(CURDATE(), INTERVAL 29 DAY), 'Morning', '08:00:00', '12:00:00', CONCAT('Ca sáng ngày ', DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 29 DAY), '%d/%m/%Y')), NOW(), NOW(), 'System', 'System'),
 (9, DATE_ADD(CURDATE(), INTERVAL 29 DAY), 'Afternoon', '13:00:00', '17:00:00', CONCAT('Ca chiều ngày ', DATE_FORMAT(DATE_ADD(CURDATE(), INTERVAL 29 DAY), '%d/%m/%Y')), NOW(), NOW(), 'System', 'System');
 
--- Insert sample doctor_services data
-INSERT INTO `doctor_services` (`DoctorId`, `ServiceId`) VALUES
-(1, 1), -- Doctor 1 provides Service 1
-(1, 2), -- Doctor 1 provides Service 2
-(2, 1), -- Doctor 2 provides Service 1
-(2, 3), -- Doctor 2 provides Service 3
-(3, 2), -- Doctor 3 provides Service 2
-(3, 3); -- Doctor 3 provides Service 3

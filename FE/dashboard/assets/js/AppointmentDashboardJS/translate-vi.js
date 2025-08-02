@@ -17,7 +17,7 @@
         ["Type", "Loại"],
         ["New Patient", "Bệnh nhân mới"],
         ["Old Patient", "Bệnh nhân cũ"],
-        ["Action", "Hành động"],
+        ["Action", "Thao tác"],
         ["Accept", "Chấp nhận"],
         ["Cancel", "Hủy"],
         ["Update", "Cập nhật"],

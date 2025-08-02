@@ -150,23 +150,41 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                 throw new Exception($"Can not find patient with ID: {id}");
             }
 
-            
-            patient.Name = update.Name;
+            // Kiểm tra CCCD và Phone có bị trùng với bệnh nhân khác không
+            if (await _context.Patients.AnyAsync(p => p.Id != id && p.CCCD == update.CCCD))
+            {
+                throw new Exception("CCCD đã tồn tại trong hệ thống");
+            }
+
+            if (await _context.Patients.AnyAsync(p => p.Id != id && p.Phone == update.Phone))
+            {
+                throw new Exception("Số điện thoại đã tồn tại trong hệ thống");
+            }
+
+            // Cập nhật thông tin bệnh nhân
+            patient.Name = update.Name?.Trim();
             patient.Gender = update.Gender;
             patient.Dob = update.Dob;
-            patient.CCCD = update.CCCD;
-            patient.Phone = update.Phone;
-            patient.EmergencyContact = update.EmergencyContact;
-            patient.Address = update.Address;
-            patient.InsuranceNumber = update.InsuranceNumber;
-            patient.Allergies = update.Allergies;
-            patient.BloodType = update.BloodType;
-            patient.ImageURL = update.ImageURL;
+            patient.CCCD = update.CCCD?.Trim();
+            patient.Phone = update.Phone?.Trim();
+            patient.EmergencyContact = update.EmergencyContact?.Trim();
+            patient.Address = update.Address?.Trim();
+            patient.InsuranceNumber = update.InsuranceNumber?.Trim();
+            patient.Allergies = update.Allergies?.Trim();
+            patient.BloodType = update.BloodType?.Trim();
+            patient.ImageURL = update.ImageURL?.Trim();
             patient.Status = update.Status;
-            patient.UpdateBy = update.UpdateBy;
+            patient.UpdateBy = update.UpdateBy ?? "System";
             patient.UpdateDate = DateTime.Now;
 
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi cập nhật bệnh nhân: {ex.Message}");
+            }
 
             return _mapper.EntityToRespone(patient);
         }
@@ -364,18 +382,13 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                 throw new Exception("Số điện thoại đã tồn tại trong hệ thống");
             }
 
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            {
-                throw new Exception("Email đã tồn tại trong hệ thống");
-            }
-
             // Tạo mật khẩu ngẫu nhiên
             var password = GenerateRandomPassword();
 
-            // Tạo User mới
+            // Tạo User mới với email từ phone number
             var user = new User
             {
-                Email = request.Email,
+                Email = $"{request.Phone}@hospital.com", // Tạo email từ số điện thoại
                 Password = password, // Trong thực tế cần hash password
                 Status = UserStatus.Active
             };
@@ -394,7 +407,15 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                 Gender = (Status.Gender)request.Gender, // Convert int to enum
                 UserId = user.Id,
                 Code = await CheckUniqueCodeAsync(),
-                Status = PatientStatus.Active
+                Status = PatientStatus.Active,
+                CreateDate = DateTime.Now,
+                UpdateDate = DateTime.Now,
+                CreateBy = "System",
+                UpdateBy = "System",
+                BloodType = request.BloodType,
+                InsuranceNumber = request.InsuranceNumber,
+                Allergies = request.Allergies,
+                EmergencyContact = request.EmergencyContact
             };
 
             await _context.Patients.AddAsync(patient);
@@ -422,7 +443,7 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                 throw new Exception("Số điện thoại đã tồn tại trong hệ thống");
             }
 
-            // Tạo Patient mới (không có User)
+            // Tạo Patient mới với admin user (UserId = 1)
             var patient = new Patient
             {
                 Name = request.FullName,
@@ -431,13 +452,38 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                 Address = request.Address,
                 Dob = request.Dob,
                 Gender = (Status.Gender)request.Gender, // Convert int to enum
-                UserId = 0, // Set to 0 instead of null for now
+                UserId = 1, // Sử dụng admin user
                 Code = await CheckUniqueCodeAsync(),
-                Status = PatientStatus.Active
+                Status = PatientStatus.Active,
+                CreateDate = DateTime.Now,
+                UpdateDate = DateTime.Now,
+                CreateBy = "System",
+                UpdateBy = "System",
+                BloodType = request.BloodType,
+                InsuranceNumber = request.InsuranceNumber,
+                Allergies = request.Allergies,
+                EmergencyContact = request.EmergencyContact
             };
 
             await _context.Patients.AddAsync(patient);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var innerException = dbEx.InnerException;
+                var errorMessage = $"Database update error: {dbEx.Message}";
+                if (innerException != null)
+                {
+                    errorMessage += $" Inner exception: {innerException.Message}";
+                }
+                throw new Exception($"Lỗi khi lưu bệnh nhân: {errorMessage}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi không xác định khi tạo bệnh nhân: {ex.Message}");
+            }
 
             return new
             {
@@ -448,7 +494,6 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                     name = patient.Name,
                     phone = patient.Phone,
                     cccd = patient.CCCD,
-                    email = request.Email, // Lưu email trong request nhưng không tạo User
                     address = patient.Address,
                     birthDate = patient.Dob.ToString("yyyy-MM-dd"),
                     gender = patient.Gender.ToString()
@@ -606,7 +651,6 @@ namespace SWP391_SE1914_ManageHospital.Service.Impl
                             name = patient.Name,
                             phone = patient.Phone,
                             cccd = patient.CCCD,
-                            email = request.Email,
                             address = patient.Address,
                             birthDate = patient.Dob.ToString("yyyy-MM-dd"),
                             gender = patient.Gender.ToString()

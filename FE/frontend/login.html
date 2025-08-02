@@ -53,6 +53,175 @@
     />
 
     <meta name="page_colors" content="" />
+    
+    <style>
+      .user-type-selector {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        margin-bottom: 20px;
+        justify-content: space-between;
+      }
+      
+      .user-type-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 8px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+        position: relative;
+        overflow: hidden;
+        flex: 1;
+        text-align: center;
+        min-width: 0;
+      }
+      
+      .user-type-option:hover {
+        border-color: #007bff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+      }
+      
+      .user-type-option.selected {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
+        box-shadow: 0 8px 24px rgba(0, 123, 255, 0.15);
+        transform: translateY(-2px);
+      }
+      
+      .user-type-option.selected::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #007bff, #0056b3);
+      }
+      
+      .user-type-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+      
+      .user-type-option:hover .user-type-icon {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      }
+      
+      .user-type-option.selected .user-type-icon {
+        background: linear-gradient(135deg, rgba(0, 123, 255, 0.1) 0%, rgba(0, 86, 179, 0.1) 100%);
+        border-color: rgba(0, 123, 255, 0.2);
+        transform: scale(1.05);
+      }
+      
+      .user-type-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+      
+      .user-type-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #2c3e50;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      
+      .user-type-desc {
+        font-size: 11px;
+        color: #6c757d;
+        line-height: 1.2;
+        text-align: center;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 100%;
+      }
+      
+      .user-type-option.selected .user-type-title {
+        color: #007bff;
+      }
+      
+      .user-type-option.selected .user-type-desc {
+        color: #495057;
+      }
+      
+             /* Responsive design */
+       @media (max-width: 768px) {
+         .user-type-selector {
+           flex-direction: column;
+           gap: 8px;
+         }
+         
+         .user-type-option {
+           flex-direction: row;
+           padding: 12px;
+           text-align: left;
+         }
+         
+         .user-type-icon {
+           width: 36px;
+           height: 36px;
+           margin-right: 12px;
+           margin-bottom: 0;
+         }
+         
+         .user-type-text {
+           align-items: flex-start;
+         }
+         
+         .user-type-title {
+           font-size: 14px;
+           white-space: normal;
+         }
+         
+         .user-type-desc {
+           font-size: 12px;
+           text-align: left;
+           -webkit-line-clamp: 1;
+         }
+       }
+      
+      /* Animation for selection */
+      .user-type-option {
+        animation: fadeInUp 0.3s ease forwards;
+      }
+      
+      .user-type-option:nth-child(1) { animation-delay: 0.1s; }
+      .user-type-option:nth-child(2) { animation-delay: 0.2s; }
+      .user-type-option:nth-child(3) { animation-delay: 0.3s; }
+      
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
   </head>
   <body class="body-bg landing-pages">
     <span class="screen-darken"></span>
@@ -97,6 +266,67 @@
                 </div>
                 <form method="post" id="loginForm">
                   <div class="custom-form-field">
+                    <label for="userType">Loại tài khoản&nbsp;<span>*</span></label>
+                    <div class="user-type-selector">
+                      <div class="user-type-option" data-value="Patient">
+                                                 <div class="user-type-icon">
+                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                             <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#4CAF50"/>
+                             <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="#4CAF50"/>
+                             <circle cx="12" cy="7" r="3" fill="white" opacity="0.3"/>
+                           </svg>
+                         </div>
+                        <div class="user-type-text">
+                          <span class="user-type-title">Bệnh nhân</span>
+                          <span class="user-type-desc">Đặt lịch hẹn và xem hồ sơ</span>
+                        </div>
+                      </div>
+                      <div class="user-type-option" data-value="Doctor">
+                                                 <div class="user-type-icon">
+                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                             <path d="M8 12H16" stroke="#2196F3" stroke-width="2" stroke-linecap="round"/>
+                             <path d="M12 8V16" stroke="#2196F3" stroke-width="2" stroke-linecap="round"/>
+                             <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#2196F3" stroke-width="2"/>
+                             <circle cx="12" cy="12" r="3" fill="#2196F3" opacity="0.1"/>
+                           </svg>
+                         </div>
+                        <div class="user-type-text">
+                          <span class="user-type-title">Bác sĩ</span>
+                          <span class="user-type-desc">Quản lý bệnh nhân và lịch hẹn</span>
+                        </div>
+                      </div>
+                      <div class="user-type-option" data-value="Admin">
+                                                 <div class="user-type-icon">
+                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                             <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#FF9800" opacity="0.2"/>
+                             <path d="M2 17L12 22L22 17" fill="#FF9800" opacity="0.2"/>
+                             <path d="M2 12L12 17L22 12" fill="#FF9800" opacity="0.2"/>
+                             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#FF9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                             <path d="M2 17L12 22L22 17" stroke="#FF9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                             <path d="M2 12L12 17L22 12" stroke="#FF9800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                             <circle cx="12" cy="12" r="2" fill="#FF9800"/>
+                           </svg>
+                         </div>
+                        <div class="user-type-text">
+                          <span class="user-type-title">Quản trị viên</span>
+                          <span class="user-type-desc">Quản lý hệ thống và người dùng</span>
+                        </div>
+                      </div>
+                    </div>
+                    <select
+                      id="userType"
+                      name="userType"
+                      class="form-control mb-5"
+                      required
+                      style="display: none;"
+                    >
+                      <option value="">Chọn loại tài khoản</option>
+                      <option value="Patient">Bệnh nhân</option>
+                      <option value="Doctor">Bác sĩ</option>
+                      <option value="Admin">Quản trị viên</option>
+                    </select>
+                  </div>
+                  <div class="custom-form-field">
                     <label for="username">Email&nbsp;<span>*</span></label>
                     <input
                       type="email"
@@ -118,8 +348,6 @@
                       required
                     />
                   </div>
-
-                  <input type="hidden" name="userType" value="Patient" />
 
                   <div
                     class="flex-column flex-sm-row d-flex align-items-start justify-content-between mb-5 gap-2"
@@ -346,5 +574,75 @@
     <script src="./assets/js/slider.js" defer></script>
     <script src="./assets/js/scroll-text.js" defer></script>
     <script src="./assets/js/ClientJS/login.js" defer></script>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const userTypeOptions = document.querySelectorAll('.user-type-option');
+        const userTypeSelect = document.getElementById('userType');
+        
+        // Xử lý click vào các option
+        userTypeOptions.forEach(option => {
+          option.addEventListener('click', function() {
+            // Xóa class selected từ tất cả options
+            userTypeOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Thêm class selected cho option được click
+            this.classList.add('selected');
+            
+            // Cập nhật giá trị cho select element
+            const value = this.getAttribute('data-value');
+            userTypeSelect.value = value;
+            
+            // Trigger change event để form validation hoạt động
+            userTypeSelect.dispatchEvent(new Event('change'));
+          });
+        });
+        
+        // Đồng bộ khi select thay đổi (nếu có)
+        userTypeSelect.addEventListener('change', function() {
+          const value = this.value;
+          userTypeOptions.forEach(opt => {
+            opt.classList.remove('selected');
+            if (opt.getAttribute('data-value') === value) {
+              opt.classList.add('selected');
+            }
+          });
+        });
+        
+        // Thêm hiệu ứng ripple khi click
+        userTypeOptions.forEach(option => {
+          option.addEventListener('click', function(e) {
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(0, 123, 255, 0.3)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.left = (e.clientX - this.offsetLeft) + 'px';
+            ripple.style.top = (e.clientY - this.offsetTop) + 'px';
+            ripple.style.width = ripple.style.height = '20px';
+            ripple.style.pointerEvents = 'none';
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+              ripple.remove();
+            }, 600);
+          });
+        });
+      });
+      
+      // Thêm CSS cho hiệu ứng ripple
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes ripple {
+          to {
+            transform: scale(4);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    </script>
   </body>
 </html>

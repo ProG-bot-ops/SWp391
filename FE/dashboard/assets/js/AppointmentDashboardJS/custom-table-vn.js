@@ -16,7 +16,7 @@
             'Ngày',
             'Ca',
             'Trạng thái',
-            'Hành động'
+            'Thao tác'
         ];
         // Hàm chuẩn hóa header bảng
         function normalizeTableHeader(table) {

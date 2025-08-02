@@ -32,6 +32,8 @@ public class AppointmentController : ControllerBase
         _emailService = emailService;
     }
 
+
+
     /// <summary>
     /// Lấy danh sách phòng khám đang hoạt động (status = 0) để đặt lịch hẹn
     /// </summary>
@@ -4483,6 +4485,58 @@ public class AppointmentController : ControllerBase
             });
         }
     }
+
+    /// <summary>
+    /// Lấy danh sách cuộc hẹn đang khám (InProgress) để tạo hóa đơn thanh toán
+    /// </summary>
+    /// <returns>Danh sách cuộc hẹn đang khám với thông tin bệnh nhân và dịch vụ</returns>
+    [HttpGet("in-progress")]
+    [ProducesResponseType(typeof(IEnumerable<AppointmentInProgressResponseDTO>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(string), (int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> GetInProgressAppointments()
+    {
+        try
+        {
+            // Lấy cuộc hẹn đang khám
+            var appointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Service)
+                .Include(a => a.Clinic)
+                .Where(a => a.Status == AppointmentStatus.InProgress && a.ServiceId.HasValue)
+                .Select(a => new AppointmentInProgressResponseDTO
+                {
+                    Id = a.Id,
+                    PatientName = a.Patient.Name,
+                    ServiceName = a.Service.Name,
+                    ServicePrice = a.Service.Price,
+                    AppointmentDate = a.AppointmentDate,
+                    DoctorName = "Chưa phân công", // Có thể thêm logic để lấy tên bác sĩ nếu cần
+                    ClinicName = a.Clinic.Name
+                })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Lấy danh sách cuộc hẹn đang khám thành công",
+                data = appointments
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = ex.Message,
+                data = (object)null
+            });
+        }
+    }
+
+
+
+
+
 
     #endregion
 } 

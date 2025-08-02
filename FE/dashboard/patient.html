@@ -4,14 +4,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title data-setting="app_name" data-rightJoin=" Clinic And Patient Management Dashboard">KiviCare Clinic And Patient
-        Management Dashboard</title>
+    <title data-setting="app_name" data-rightJoin=" Bảng điều khiển quản lý phòng khám và bệnh nhân">G-Care Bảng điều khiển quản lý phòng khám và bệnh nhân</title>
     <meta name="description"
-        content="KiviCare is a revolutionary Bootstrap Admin Dashboard Template and UI Components Library. The Admin Dashboard Template and UI Component features 8 modules.">
+        content="G-Care là một mẫu Bảng điều khiển Admin Bootstrap và Thư viện thành phần UI mang tính cách mạng. Mẫu Bảng điều khiển Admin và thành phần UI có 8 module.">
     <meta name="keywords"
         content="premium, admin, dashboard, template, bootstrap 5, clean ui, Kivicare, admin dashboard,responsive dashboard, optimized dashboard,">
     <meta name="author" content="Iqonic Design">
-    <meta name="DC.title" content="KiviCare Clinic And Patient Management Dashboard">
+    <meta name="DC.title" content="G-Care Bảng điều khiển quản lý phòng khám và bệnh nhân">
     <!-- Config Options -->
     <meta name="setting_options"
         content='{&quot;saveLocal&quot;:&quot;sessionStorage&quot;,&quot;storeKey&quot;:&quot;kivicare&quot;,&quot;setting&quot;:{&quot;app_name&quot;:{&quot;value&quot;:&quot;KiviCare&quot;},&quot;theme_scheme_direction&quot;:{&quot;value&quot;:&quot;ltr&quot;},&quot;theme_scheme&quot;:{&quot;value&quot;:&quot;light&quot;},&quot;theme_style_appearance&quot;:{&quot;value&quot;:[&quot;theme-default&quot;]},&quot;theme_color&quot;:{&quot;value&quot;:&quot;default&quot;},&quot;theme_transition&quot;:{&quot;value&quot;:&quot;theme-with-animation&quot;},&quot;theme_font_size&quot;:{&quot;value&quot;:&quot;theme-fs-sm&quot;},&quot;page_layout&quot;:{&quot;value&quot;:&quot;container-fluid&quot;},&quot;header_navbar&quot;:{&quot;value&quot;:&quot;default&quot;},&quot;header_banner&quot;:{&quot;value&quot;:&quot;default&quot;},&quot;sidebar_color&quot;:{&quot;value&quot;:&quot;sidebar-white&quot;},&quot;card_color&quot;:{&quot;value&quot;:&quot;card-default&quot;},&quot;sidebar_type&quot;:{&quot;value&quot;:[]},&quot;sidebar_menu_style&quot;:{&quot;value&quot;:&quot;text-hover&quot;},&quot;footer&quot;:{&quot;value&quot;:&quot;default&quot;},&quot;body_font_family&quot;:{&quot;value&quot;:null},&quot;heading_font_family&quot;:{&quot;value&quot;:null}}}'>
@@ -53,6 +52,18 @@
 
     <!-- Customizer Css -->
     <link rel="stylesheet" href="./assets/css/customizer.min.css?v=1.4.1" />
+
+    <!-- Custom CSS for patient images -->
+    <style>
+        .patient-image-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        #edit_CurrentImage {
+            object-fit: cover;
+        }
+    </style>
 
     <!-- Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,8 +118,8 @@
                 <ul class="navbar-nav iq-main-menu" id="sidebar-menu">
                     <li class="nav-item static-item">
                         <a class="nav-link static-item disabled text-start" href="#" tabindex="-1">
-                            <span class="default-icon">Home</span>
-                            <span class="mini-icon" data-bs-toggle="tooltip" title="Home"
+                            <span class="default-icon">Trang chủ</span>
+                            <span class="mini-icon" data-bs-toggle="tooltip" title="Trang chủ"
                                 data-bs-placement="right">-</span>
                         </a>
                     </li>
@@ -126,7 +137,7 @@
                                         fill="currentColor"></path>
                                 </svg>
                             </i>
-                            <span class="item-name">Dashboard</span>
+                            <span class="item-name">Bảng điều khiển</span>
                             <i class="right-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" class="icon-18" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
@@ -149,7 +160,7 @@
                                     </i>
                                     <i class="sidenav-mini-icon" data-bs-toggle="tooltip" title="Admin Dashboard"
                                         data-bs-placement="right">AD</i>
-                                    <span class="item-name">Admin Dashboard</span>
+                                    <span class="item-name">Bảng điều khiển Admin</span>
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -171,7 +182,7 @@
                                     </i>
                                     <i class="sidenav-mini-icon" data-bs-toggle="tooltip" title="patient dashboard"
                                         data-bs-placement="right">PD</i>
-                                    <span class="item-name">patient dashboard</span>
+                                    <span class="item-name">Bảng điều khiển bệnh nhân</span>
                                 </a>
                             </li>
                         </ul>
@@ -195,7 +206,7 @@
                                         fill="currentColor" />
                                 </svg>
                             </i>
-                            <span class="item-name">Appointments</span>
+                            <span class="item-name">Lịch hẹn</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -217,7 +228,7 @@
                                         fill="currentColor"></path>
                                 </svg>
                             </i>
-                            <span class="item-name">Report</span>
+                            <span class="item-name">Báo cáo</span>
                         </a>
                     </li>
                     <li>
@@ -225,7 +236,7 @@
                     </li>
                     <li class="nav-item static-item">
                         <a class="nav-link static-item disabled text-start" href="#" tabindex="-1">
-                            <span class="default-icon">Pages</span>
+                            <span class="default-icon">Trang</span>
                             <span class="mini-icon">-</span>
                         </a>
                     </li>
@@ -246,7 +257,7 @@
                             </i>
                             <i class="sidenav-mini-icon" data-bs-toggle="tooltip" title="Doctors"
                                 data-bs-placement="right">DR</i>
-                            <span class="item-name">Doctors</span>
+                            <span class="item-name">Bác sĩ</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -264,7 +275,7 @@
                             </i>
                             <i class="sidenav-mini-icon" data-bs-toggle="tooltip" title="Patient"
                                 data-bs-placement="right">P</i>
-                            <span class="item-name">Patient</span>
+                            <span class="item-name">Bệnh nhân</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -282,7 +293,7 @@
                             </i>
                             <i class="sidenav-mini-icon" data-bs-toggle="tooltip" title="Category"
                                 data-bs-placement="right">C</i>
-                            <span class="item-name">Category</span>
+                            <span class="item-name">Danh mục</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -298,7 +309,7 @@
                                         fill="currentColor"></path>
                                 </svg>
                             </i>
-                            <span class="item-name">Products</span>
+                            <span class="item-name">Sản phẩm</span>
                         </a>
                         <ul class="sub-nav collapse" id="products" data-bs-parent="#sidebar-menu">
                             <li class="nav-item">
@@ -382,7 +393,7 @@
                                     <circle cx="18" cy="11.8999" r="1" fill="currentColor"></circle>
                                 </svg>
                             </i>
-                            <span class="item-name">Payment</span>
+                            <span class="item-name">Thanh toán</span>
                         </a>
                     </li>
                     <li>
@@ -390,7 +401,7 @@
                     </li>
                     <li class="nav-item static-item">
                         <a class="nav-link static-item disabled text-start" href="#" tabindex="-1">
-                            <span class="default-icon">settings</span>
+                            <span class="default-icon">Cài đặt</span>
                             <span class="mini-icon" data-bs-toggle="tooltip" title="Elements"
                                 data-bs-placement="right">-</span>
                         </a>
@@ -408,7 +419,7 @@
                                         fill="currentColor"></path>
                                 </svg>
                             </i>
-                            <span class="item-name">Help & Support</span>
+                            <span class="item-name">Trợ giúp & Hỗ trợ</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -424,7 +435,7 @@
                                         fill="currentColor"></path>
                                 </svg>
                             </i>
-                            <span class="item-name">Setting</span>
+                            <span class="item-name">Cài đặt</span>
                         </a>
                     </li>
                     
@@ -478,21 +489,21 @@
                                 <ul class="iq-nav-menu list-unstyled">
                                     <li class="nav-item">
                                         <a class="nav-link menu-arrow justify-content-start " href="./index.html">
-                                            <span class="nav-text">Home</span>
+                                            <span class="nav-text">Trang chủ</span>
                                         </a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link menu-arrow justify-content-start" data-bs-toggle="collapse"
                                             href="#allPagesData" role="button" aria-expanded="false"
                                             aria-controls="allPagesData">
-                                            <span class="nav-text">Pages</span>
+                                            <span class="nav-text">Trang</span>
                                         </a>
                                         <ul class="iq-header-sub-menu list-unstyled collapse" id="allPagesData">
                                             <li class="nav-item">
-                                                <a class="nav-link" href="./component.html">Components</a>
+                                                <a class="nav-link" href="./component.html">Thành phần</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" href="./ui-color.html">UI Color</a>
+                                                <a class="nav-link" href="./ui-color.html">Màu giao diện</a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link menu-arrow" data-bs-toggle="collapse"
@@ -511,16 +522,16 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="defaultAuth">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./auth/sign-in.html">Sign In</a></li>
+                                                            href="../frontend/login.html">Đăng nhập</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./auth/sign-up.html">Sign Up</a></li>
+                                                            href="./auth/sign-up.html">Đăng ký</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./auth/confirm-mail.html">Email Verified</a></li>
+                                                            href="./auth/confirm-mail.html">Xác thực Email</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./auth/recoverpw.html">Reset
-                                                            Password</a></li>
+                                                            href="./auth/recoverpw.html">Đặt lại
+                                                            mật khẩu</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./auth/lock-screen.html">Lock Screen</a></li>
+                                                            href="./auth/lock-screen.html">Màn hình khóa</a></li>
                                                 </ul>
                                             </li>
                                             <li class="nav-item">
@@ -541,11 +552,11 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="userApps">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./app/user-profile.html">User Profile</a></li>
+                                                            href="./app/user-profile.html">Hồ sơ người dùng</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./app/user-add.html">User Add</a></li>
+                                                            href="./app/user-add.html">Thêm người dùng</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./app/user-list.html">User List</a></li>
+                                                            href="./app/user-list.html">Danh sách người dùng</a></li>
                                                 </ul>
                                             </li>
                                             <li class="nav-item">
@@ -566,7 +577,7 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="utilities">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./errors/maintenance.html">Maintenance</a></li>
+                                                            href="./errors/maintenance.html">Bảo trì</a></li>
                                                     <li class="nav-item"><a class="nav-link "
                                                             href="./errors/error404.html">404</a></li>
                                                     <li class="nav-item"><a class="nav-link "
@@ -591,11 +602,11 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="widgetsPage">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./widget/widgetbasic.html">Widget Basic</a></li>
+                                                            href="./widget/widgetbasic.html">Widget cơ bản</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./widget/widgetchart.html">Widget Chart</a></li>
+                                                            href="./widget/widgetchart.html">Widget biểu đồ</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./widget/widgetcard.html">Widget Card</a></li>
+                                                            href="./widget/widgetcard.html">Widget thẻ</a></li>
                                                 </ul>
                                             </li>
                                             <li class="nav-item">
@@ -639,10 +650,10 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="formsPages">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./form/form-element.html">Element</a></li>
+                                                            href="./form/form-element.html">Phần tử</a></li>
 
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./form/form-validation.html">Validation</a></li>
+                                                            href="./form/form-validation.html">Xác thực</a></li>
                                                 </ul>
                                             </li>
                                             <li class="nav-item">
@@ -663,15 +674,15 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="tablesPages">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./table/bootstrap-table.html">Bootstrap Table</a></li>
+                                                            href="./table/bootstrap-table.html">Bảng Bootstrap</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./table/table-data.html">Data Table</a></li>
+                                                            href="./table/table-data.html">Bảng dữ liệu</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./table/border-table.html">Bordered Table</a></li>
+                                                            href="./table/border-table.html">Bảng có viền</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./table/fancy-table.html">Fancy Table</a></li>
+                                                            href="./table/fancy-table.html">Bảng đẹp</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./table/fixed-table.html">Fixed Table</a></li>
+                                                            href="./table/fixed-table.html">Bảng cố định</a></li>
                                                 </ul>
                                             </li>
                                             <li class="nav-item">
@@ -692,18 +703,18 @@
                                                     class="iq-header-sub-menu left list-unstyled collapse"
                                                     id="iconsPages">
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./icons/solid.html">Solid</a></li>
+                                                            href="./icons/solid.html">Đặc</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./icons/outline.html">Outlined</a></li>
+                                                            href="./icons/outline.html">Viền</a></li>
                                                     <li class="nav-item"><a class="nav-link "
-                                                            href="./icons/dual-tone.html">Dual Tone</a></li>
+                                                            href="./icons/dual-tone.html">Hai tông</a></li>
                                                 </ul>
                                             </li>
                                         </ul>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link menu-arrow justify-content-start " href="./setting.html">
-                                            <span class="nav-text">Setting </span>
+                                            <span class="nav-text">Cài đặt </span>
                                         </a>
                                     </li>
                                 </ul>
@@ -746,8 +757,8 @@
                                 </div>
                             </li>
                             <li class="nav-item dropdown pe-3 d-none d-xl-block">
-                                <div class="form-group input-group mb-0 search-input">
-                                    <input type="text" class="form-control" placeholder="Search...">
+                                                                    <div class="form-group input-group mb-0 search-input">
+                                        <input type="text" class="form-control" placeholder="Tìm kiếm...">
                                     <span class="input-group-text">
                                         <svg class="icon-20" width="20" height="20" viewBox="0 0 24 24" fill="none"
                                             xmlns="http://www.w3.org/2000/svg">
@@ -776,7 +787,7 @@
                                     style="width: 25rem;">
                                     <li class="px-3 py-0">
                                         <div class="form-group input-group mb-0">
-                                            <input type="text" class="form-control" placeholder="Search...">
+                                            <input type="text" class="form-control" placeholder="Tìm kiếm...">
                                             <span class="input-group-text">
                                                 <svg class="icon-20" width="20" height="20" viewBox="0 0 24 24"
                                                     fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -898,17 +909,17 @@
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <li>
-                                        <a class="dropdown-item" href="./app/user-profile.html">Profile</a>
+                                        <a class="dropdown-item" href="./app/user-profile.html">Hồ sơ</a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="./app/user-privacy-setting.html">Privacy
-                                            Setting</a>
+                                        <a class="dropdown-item" href="./app/user-privacy-setting.html">Cài đặt
+                                            riêng tư</a>
                                     </li>
                                     <li>
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="./auth/sign-in.html">Logout</a>
+                                        <a class="dropdown-item" href="../frontend/login.html">Đăng xuất</a>
                                     </li>
                                 </ul>
                             </li>
@@ -929,64 +940,222 @@
                     <path d="M8.5 5L15.5 12L8.5 19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                         stroke-linejoin="round"></path>
                 </svg>
-                <span class="head-title fw-500 mt-1">Dach sách bệnh nhân</span>
+                <span class="head-title fw-500 mt-1">Danh sách bệnh nhân</span>
             </div>
 <style>
-    /* Pagination styles */
+    /* Modern Pagination Styles - Matching Image Design */
+    .pagination-container {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-top: 1.5rem !important;
+        padding: 1rem !important;
+        background: #ffffff !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+        border: 1px solid #dee2e6 !important;
+        flex-wrap: wrap !important;
+        gap: 1rem !important;
+    }
+
+    .pagination-info {
+        font-size: 0.875rem !important;
+        color: #495057 !important;
+        font-weight: 500 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+
+    .pagination-info .highlight {
+        color: #0d6efd !important;
+        font-weight: 600 !important;
+        background: rgba(13, 110, 253, 0.1) !important;
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 0.25rem !important;
+    }
+
+    .pagination-controls {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    .pagination-select {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        background: #ffffff !important;
+        padding: 0.5rem !important;
+        border-radius: 0.375rem !important;
+        border: 1px solid #dee2e6 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        min-width: 120px !important;
+    }
+
+    .pagination-select label {
+        font-size: 0.875rem !important;
+        color: #495057 !important;
+        margin: 0 !important;
+        font-weight: 500 !important;
+    }
+
+    .pagination-select select {
+        padding: 0.25rem 0.5rem !important;
+        border: 1px solid #dee2e6 !important;
+        border-radius: 0.375rem !important;
+        font-size: 0.875rem !important;
+        background-color: #ffffff !important;
+        color: #495057 !important;
+        min-width: 60px !important;
+    }
+
     .pagination {
-        display: flex;
-        justify-content: flex-start; /* Căn lề sang trái */
-        gap: 10px;
-        margin-top: 20px;
+        display: flex !important;
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0.25rem !important;
+        align-items: center !important;
     }
 
-    .pagination li {
-        display: inline-block;
-        padding: 8px 12px;
-        cursor: pointer;
-        background-color: #f1f1f1;
-        border-radius: 4px;
-        transition: background-color 0.3s ease;
+    .pagination .page-item {
+        margin: 0;
     }
 
-    .pagination li:hover {
-        background-color: #2980b9;
-        color: #fff;
+    .pagination .page-link {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 2.5rem !important;
+        height: 2.5rem !important;
+        padding: 0.5rem !important;
+        border: 1px solid #dee2e6 !important;
+        color: #6c757d !important;
+        background-color: #fff !important;
+        border-radius: 0.375rem !important;
+        text-decoration: none !important;
+        font-size: 0.875rem !important;
+        font-weight: 500 !important;
+        transition: all 0.15s ease-in-out !important;
+        cursor: pointer !important;
     }
 
-    .pagination li.active {
-        background-color: #3498db;
-        color: #fff;
-        pointer-events: none;
+    .pagination .page-link:hover {
+        background-color: #e9ecef !important;
+        border-color: #dee2e6 !important;
+        color: #495057 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
     }
 
-    .pagination li.disabled {
-        background-color: #e0e0e0;
-        cursor: not-allowed;
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: #fff !important;
+        box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3) !important;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd !important;
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6 !important;
+    }
+
+    .pagination .page-item.disabled .page-link:hover {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    .pagination .page-link .icon {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    /* Compact search bar styles */
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .input-group {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .input-group-text {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+
+    .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+
+    /* Button hover effects */
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+        transition: all 0.3s ease;
+    }
+
+    /* Table improvements */
+    .table th {
+        font-weight: 600;
+        background-color: #343a40;
+        color: white;
+        border: none;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    /* Action buttons styling */
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.375rem;
     }
 </style>
 
     <!-- DANH SÁCH BỆNH NHÂN -->
     <div class="card" id="listCard">
-        <h2>Danh Sách Bệnh Nhân</h2>
-        <label for="searchInput">Tìm kiếm theo <b>tên bệnh nhân</b> hoặc <b>mã bệnh nhân</b> hoặc <b>trạng thái</b>:</label>
-        <input type="text" id="searchInput" placeholder="Nhập mã bệnh nhân hoặc tên bệnh nhân hoặc trạng thái…" autocomplete="off" />
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Danh Sách Bệnh Nhân</h2>
+            <button class="btn btn-primary" id="addPatientBtn" data-bs-toggle="offcanvas" data-bs-target="#offcanvasPatientAdd">
+                <i class="fas fa-plus me-2"></i>Thêm bệnh nhân
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo tên, mã BN hoặc trạng thái..." autocomplete="off" />
+                    </div>
+                </div>
+            </div>
 
-        <div class="table-responsive">
+            <div class="table-responsive">
             <table class="table border-end border-start align-middle mb-0 rounded" id="patientTable">
                 <thead class="table-dark">
                     <tr>
-                        <th data-sort="id" class="sortable">No. <span class="sort-icon">↑↓</span></th>
-                        <th data-sort="id" class="sortable">ID <span class="sort-icon">↑↓</span></th>
-                        <th data-sort="code" class="sortable">Code <span class="sort-icon">↑↓</span></th>
-                        <th>Image</th>
-                        <th data-sort="name" class="sortable">Patient Name <span class="sort-icon">↑↓</span></th>
-                        <th>Address</th>
-                        <th>Phone Number</th>
-                        <th data-sort="gender" class="sortable">Gender <span class="sort-icon">↑↓</span></th>
-                        <th>Blood Group</th>
-                        <th data-sort="status" class="sortable">Status <span class="sort-icon">↑↓</span></th>
-                        <th>Action</th>
+                        <th data-sort="id" class="sortable">STT <span class="sort-icon">↑↓</span></th>
+                        <th data-sort="code" class="sortable">Mã BN <span class="sort-icon">↑↓</span></th>
+                        <th data-sort="name" class="sortable">Tên bệnh nhân <span class="sort-icon">↑↓</span></th>
+                        <th>Số điện thoại</th>
+                        <th data-sort="gender" class="sortable">Giới tính <span class="sort-icon">↑↓</span></th>
+                        <th data-sort="status" class="sortable">Trạng thái <span class="sort-icon">↑↓</span></th>
+                        <th>Thao tác</th>
                     </tr>
                 </thead>
                 <tbody id="patientTableBody">
@@ -995,54 +1164,207 @@
             </table>
         </div>
 
-        <div class="pagination" id="pagination"></div>
+            <!-- Modern Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Hiển thị <span id="pagination-start">1</span> đến <span id="pagination-end">10</span> của <span id="pagination-total">0</span> bệnh nhân
+                </div>
+                <div class="pagination-controls">
+                    <div class="pagination-select">
+                        <label for="items-per-page">Hiển thị:</label>
+                        <select id="items-per-page">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <nav aria-label="Pagination Navigation">
+                        <ul id="pagination" class="pagination">
+                            <!-- Pagination will be generated here -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Patient Modal -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPatientAdd" aria-labelledby="offcanvasPatientAddLabel">
+        <div class="offcanvas-header border-bottom">
+            <h3 class="offcanvas-title" id="offcanvasPatientAddLabel">Thêm bệnh nhân mới</h3>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="addPatientForm">
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_Name">Tên bệnh nhân <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="add_Name" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_ImageFile">Ảnh đại diện</label>
+                    <input type="file" class="form-control" id="add_ImageFile" accept="image/*">
+                    <small class="form-text text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 5MB</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_CCCD">CCCD <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="add_CCCD" maxlength="12" pattern="\d{12}" placeholder="Nhập 12 số CCCD" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_PhoneNumber">Số điện thoại <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control" id="add_PhoneNumber" pattern="^(0|\+84)(3[2-9]|5[689]|7[06-9]|8[1-689]|9[0-46-9])[0-9]{7}$" placeholder="VD: 0123456789" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_Dob">Ngày sinh <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="add_Dob" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_Gender">Giới tính <span class="text-danger">*</span></label>
+                    <select class="form-control" id="add_Gender" required>
+                        <option value="">Chọn giới tính</option>
+                        <option value="0">Nam</option>
+                        <option value="1">Nữ</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_Address">Địa chỉ <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="add_Address" required>
+                </div>
+                                 <div class="form-group mb-3">
+                     <label class="form-label" for="add_BloodGroup">Nhóm máu (tùy chọn)</label>
+                     <select class="form-control" id="add_BloodGroup">
+                         <option value="">Chọn nhóm máu (có thể bỏ qua)</option>
+                         <option value="A+">A+</option>
+                         <option value="A-">A-</option>
+                         <option value="B+">B+</option>
+                         <option value="B-">B-</option>
+                         <option value="AB+">AB+</option>
+                         <option value="AB-">AB-</option>
+                         <option value="O+">O+</option>
+                         <option value="O-">O-</option>
+                     </select>
+                 </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_InsuranceNumber">Số bảo hiểm y tế</label>
+                    <input type="text" class="form-control" id="add_InsuranceNumber" placeholder="Nhập số BHYT (nếu có)">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="add_Allergies">Dị ứng</label>
+                    <textarea class="form-control" id="add_Allergies" rows="2" placeholder="Nhập thông tin dị ứng (nếu có)"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="offcanvas-footer border-top">
+            <button class="btn btn-primary" id="savePatientBtn">Lưu bệnh nhân</button>
+        </div>
     </div>
 
     <!-- Edit Patient Modal -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasPatientEdit" aria-labelledby="offcanvasPatientEditLabel">
         <div class="offcanvas-header border-bottom">
-            <h3 class="offcanvas-title" id="offcanvasPatientEditLabel">Edit Patient</h3>
+            <h3 class="offcanvas-title" id="offcanvasPatientEditLabel">Chỉnh sửa bệnh nhân</h3>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body">
-            <div class="form-group">
-                <label class="form-label" for="edit_Id">Patient Id <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="edit_Id">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="edit_Name">Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="edit_Name">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="edit_Address">Address</label>
-                <input type="text" class="form-control" id="edit_Address">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="edit_PhoneNumber">Phone Number</label>
-                <input type="text" class="form-control" id="edit_PhoneNumber">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="edit_Gender">Gender</label>
-                <select class="form-control" id="edit_Gender">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="edit_BloodGroup">Blood Group</label>
-                <input type="text" class="form-control" id="edit_BloodGroup">
-            </div>
-            <div class="form-group">
-                <label class="form-label" for="edit_Status">Status</label>
-                <input type="text" class="form-control" id="edit_Status">
-            </div>
+            <form id="editPatientForm">
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Id">ID bệnh nhân <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="edit_Id" readonly>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Code">Mã bệnh nhân <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="edit_Code" readonly>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Name">Tên bệnh nhân <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="edit_Name" placeholder="Nhập tên bệnh nhân" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_CCCD">CCCD <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="edit_CCCD" maxlength="12" pattern="\d{12}" placeholder="Nhập 12 số CCCD" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_PhoneNumber">Số điện thoại <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control" id="edit_PhoneNumber" pattern="^(0|\+84)(3[2-9]|5[689]|7[06-9]|8[1-689]|9[0-46-9])[0-9]{7}$" placeholder="VD: 0123456789" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Dob">Ngày sinh <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="edit_Dob" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Gender">Giới tính</label>
+                    <select class="form-control" id="edit_Gender">
+                        <option value="">Chọn giới tính</option>
+                        <option value="0">Nam</option>
+                        <option value="1">Nữ</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Address">Địa chỉ <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="edit_Address" placeholder="Nhập địa chỉ" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_BloodGroup">Nhóm máu (tùy chọn)</label>
+                    <select class="form-control" id="edit_BloodGroup">
+                        <option value="">Chọn nhóm máu (có thể bỏ qua)</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_InsuranceNumber">Số bảo hiểm y tế</label>
+                    <input type="text" class="form-control" id="edit_InsuranceNumber" placeholder="Nhập số BHYT (nếu có)">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Allergies">Dị ứng</label>
+                    <textarea class="form-control" id="edit_Allergies" rows="2" placeholder="Nhập thông tin dị ứng (nếu có)"></textarea>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_ImageFile">Ảnh đại diện</label>
+                    <div class="mb-2">
+                        <img id="edit_CurrentImage" src="" alt="Ảnh hiện tại" style="max-width: 150px; max-height: 150px; border-radius: 8px; display: none;">
+                    </div>
+                    <input type="file" class="form-control" id="edit_ImageFile" accept="image/*">
+                    <small class="form-text text-muted">Chấp nhận: JPG, PNG, GIF. Kích thước tối đa: 5MB</small>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" for="edit_Status">Trạng thái</label>
+                    <select class="form-control" id="edit_Status">
+                        <option value="Active">Hoạt động</option>
+                        <option value="Banned">Bị cấm</option>
+                    </select>
+                </div>
+            </form>
         </div>
         <div class="offcanvas-footer border-top">
-            <button class="btn btn-primary" id="updatePatientBtn">Update</button>
+            <button class="btn btn-primary" id="updatePatientBtn">Cập nhật</button>
         </div>
     </div>
 
-
+    <!-- Patient Details Modal -->
+    <div class="modal fade" id="patientDetailsModal" tabindex="-1" aria-labelledby="patientDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="patientDetailsModalLabel">Chi tiết bệnh nhân</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="patientDetailsContent">
+                    <!-- Content will be dynamically loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
         </div>
         <!-- Footer Section Start -->
@@ -1050,9 +1372,9 @@
             <div class="footer-body">
                 <ul class="left-panel list-inline mb-0 p-0">
                     <li class="list-inline-item fw-500"><a class="footer-link"
-                            href="./extra/privacy-policy.html">Privacy Policy</a></li>
+                            href="./extra/privacy-policy.html">Chính sách bảo mật</a></li>
                     <li class="list-inline-item fw-500"><a class="footer-link"
-                            href="./extra/terms-of-service.html">Terms of Use</a></li>
+                            href="./extra/terms-of-service.html">Điều khoản sử dụng</a></li>
                 </ul>
                 <h6 class="right-panel mb-0">
                     ©
@@ -1890,11 +2212,56 @@
 
  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-const itemsPerPage = 6;
+let itemsPerPage = 10; // Default items per page
 let currentPage = 1;
 let patients = [];
 let filteredPatients = [];
 let currentSort = { column: null, asc: true };
+let imageCache = new Map(); // Cache để tránh load lại ảnh
+let loadImageTimeout = null; // Timeout để debounce việc load ảnh
+
+// Hàm helper để load ảnh một cách tối ưu
+function loadImageOptimized(imageElement, imageUrl, fallbackUrl = 'assets/images/user/default-avatar.png') {
+    if (!imageUrl || imageUrl === 'N/A') {
+        imageElement.attr('src', fallbackUrl);
+        return;
+    }
+    
+    const fullUrl = imageUrl.startsWith('http') ? imageUrl : 'https://localhost:7097/' + imageUrl;
+    
+    // Kiểm tra cache
+    if (imageCache.has(fullUrl)) {
+        imageElement.attr('src', imageCache.get(fullUrl));
+        return;
+    }
+    
+    // Kiểm tra nếu src hiện tại đã đúng
+    if (imageElement.attr('src') === fullUrl) {
+        return;
+    }
+    
+    // Clear timeout cũ nếu có
+    if (loadImageTimeout) {
+        clearTimeout(loadImageTimeout);
+    }
+    
+    // Debounce việc load ảnh
+    loadImageTimeout = setTimeout(() => {
+        // Load ảnh mới
+        imageElement.attr('src', fullUrl);
+        
+        // Cache ảnh sau khi load thành công
+        imageElement.off('load').on('load', function() {
+            imageCache.set(fullUrl, fullUrl);
+        });
+        
+        // Xử lý lỗi
+        imageElement.off('error').on('error', function() {
+            imageElement.attr('src', fallbackUrl);
+            imageCache.set(fullUrl, fallbackUrl);
+        });
+    }, 50); // Debounce 50ms
+}
 
 // Tải danh sách bệnh nhân từ API
 async function loadPatients() {
@@ -1916,20 +2283,36 @@ function renderTable() {
     const start = (currentPage - 1) * itemsPerPage;
     const paginatedPatients = filteredPatients.slice(start, start + itemsPerPage);
 
+    // Update pagination info
+    const totalItems = filteredPatients.length;
+    const startItem = totalItems > 0 ? start + 1 : 0;
+    const endItem = Math.min(start + itemsPerPage, totalItems);
+    
+    document.getElementById('pagination-start').textContent = startItem;
+    document.getElementById('pagination-end').textContent = endItem;
+    document.getElementById('pagination-total').textContent = totalItems;
+
     paginatedPatients.forEach((patient, index) => {
         const row = document.createElement('tr');
+        row.setAttribute('data-patient-id', patient.id);
         row.innerHTML = `
             <td>${start + index + 1}</td>
-            <td>${patient.id}</td>
             <td>${patient.code}</td>
-            <td><img src="${patient.imageURL || ''}" alt="Patient Image" width="50" height="50" class="rounded-circle"></td>
-            <td>${patient.name}</td>
-            <td>${patient.address || ''}</td>
-            <td>${patient.phone || ''}</td>
-            <td>${patient.gender || ''}</td>
-            <td>${patient.bloodType || ''}</td>
+                            <td>${patient.name}</td>
+                <td>${patient.phone || ''}</td>
+            <td>${patient.gender === 'Male' ? 'Nam' : patient.gender === 'Female' ? 'Nữ' : patient.gender === 0 ? 'Nam' : patient.gender === 1 ? 'Nữ' : ''}</td>
             <td>${patient.status || ''}</td>
             <td>
+                <a href="#" class="view-btn d-inline-block pe-2" data-id="${patient.id}" title="Xem chi tiết">
+                    <span class="text-info">
+                        <!-- SVG icon con mắt (view) -->
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 3.5C4.5 3.5 1.5 6 0.5 8C1.5 10 4.5 12.5 8 12.5C11.5 12.5 14.5 10 15.5 8C14.5 6 11.5 3.5 8 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 10.5C9.38071 10.5 10.5 9.38071 10.5 8C10.5 6.61929 9.38071 5.5 8 5.5C6.61929 5.5 5.5 6.61929 5.5 8C5.5 9.38071 6.61929 10.5 8 10.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </a>
                 <a data-bs-toggle="offcanvas" href="#offcanvasPatientEdit" aria-controls="offcanvasPatientEdit"
                    class="edit-btn d-inline-block pe-2" data-id="${patient.id}">
                     <span class="text-success">
@@ -1970,22 +2353,149 @@ function renderTable() {
     });
 }
 
-// Phân trang
+// Cập nhật thông tin bệnh nhân trong bảng mà không cần reload
+function updatePatientInTable(patientId, updatedPatient) {
+    // Tìm và cập nhật trong mảng patients
+    const patientIndex = patients.findIndex(p => p.id === patientId);
+    if (patientIndex !== -1) {
+        patients[patientIndex] = { ...patients[patientIndex], ...updatedPatient };
+    }
+    
+    // Tìm và cập nhật trong mảng filteredPatients
+    const filteredIndex = filteredPatients.findIndex(p => p.id === patientId);
+    if (filteredIndex !== -1) {
+        filteredPatients[filteredIndex] = { ...filteredPatients[filteredIndex], ...updatedPatient };
+    }
+    
+    // Cập nhật UI chỉ cho dòng đó
+    const row = document.querySelector(`tr[data-patient-id="${patientId}"]`);
+    if (row) {
+        const cells = row.cells;
+        cells[1].textContent = updatedPatient.code || patients[patientIndex]?.code || '';
+        cells[2].textContent = updatedPatient.name || patients[patientIndex]?.name || '';
+        cells[3].textContent = updatedPatient.phone || patients[patientIndex]?.phone || '';
+        cells[4].textContent = updatedPatient.gender === 0 ? 'Nam' : updatedPatient.gender === 1 ? 'Nữ' : 
+                               updatedPatient.gender === 'Male' ? 'Nam' : updatedPatient.gender === 'Female' ? 'Nữ' : '';
+        cells[5].textContent = updatedPatient.status || patients[patientIndex]?.status || '';
+    }
+}
+
+// Modern Pagination
 function renderPagination() {
     const totalPages = Math.ceil(filteredPatients.length / itemsPerPage);
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
-    for (let i = 1; i <= totalPages; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.textContent = i;
-        pageBtn.className = 'btn btn-light btn-sm mx-1' + (i === currentPage ? ' btn-primary text-white' : '');
-        pageBtn.onclick = () => {
-            currentPage = i;
+
+    if (totalPages <= 1) {
+        return; // Don't show pagination if there's only one page or no pages
+    }
+
+    // Previous button
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `
+        <a class="page-link" href="#" ${currentPage === 1 ? 'tabindex="-1" aria-disabled="true"' : ''}>
+            <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/>
+            </svg>
+        </a>
+    `;
+    if (currentPage > 1) {
+        prevLi.querySelector('.page-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentPage--;
             renderTable();
             renderPagination();
-        };
-        pagination.appendChild(pageBtn);
+        });
     }
+    pagination.appendChild(prevLi);
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+        startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // First page and ellipsis
+    if (startPage > 1) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item';
+        firstLi.innerHTML = '<a class="page-link" href="#">1</a>';
+        firstLi.querySelector('.page-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentPage = 1;
+            renderTable();
+            renderPagination();
+        });
+        pagination.appendChild(firstLi);
+
+        if (startPage > 2) {
+            const ellipsisLi = document.createElement('li');
+            ellipsisLi.className = 'page-item disabled';
+            ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+            pagination.appendChild(ellipsisLi);
+        }
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        if (i !== currentPage) {
+            pageLi.querySelector('.page-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                currentPage = i;
+                renderTable();
+                renderPagination();
+            });
+        }
+        pagination.appendChild(pageLi);
+    }
+
+    // Last page and ellipsis
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const ellipsisLi = document.createElement('li');
+            ellipsisLi.className = 'page-item disabled';
+            ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+            pagination.appendChild(ellipsisLi);
+        }
+
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item';
+        lastLi.innerHTML = `<a class="page-link" href="#">${totalPages}</a>`;
+        lastLi.querySelector('.page-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentPage = totalPages;
+            renderTable();
+            renderPagination();
+        });
+        pagination.appendChild(lastLi);
+    }
+
+    // Next button
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextLi.innerHTML = `
+        <a class="page-link" href="#" ${currentPage === totalPages ? 'tabindex="-1" aria-disabled="true"' : ''}>
+            <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+            </svg>
+        </a>
+    `;
+    if (currentPage < totalPages) {
+        nextLi.querySelector('.page-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            currentPage++;
+            renderTable();
+            renderPagination();
+        });
+    }
+    pagination.appendChild(nextLi);
 }
 
 // Sắp xếp
@@ -2028,46 +2538,247 @@ $('#searchInput').on('input', function() {
 $('#patientTableBody').on('click', '.edit-btn', async function() {
     const patientId = $(this).data('id');
     try {
-        const res = await fetch(`https://localhost:7097/api/Patient/findId/${patientId}`);
-        if (!res.ok) { alert('Không tìm thấy bệnh nhân!'); return; }
-        const p = await res.json();
+        const res = await fetch(`https://localhost:7097/api/Patient/detail/${patientId}`);
+        if (!res.ok) { 
+            alert('Không tìm thấy bệnh nhân!'); 
+            return; 
+        }
+        const response = await res.json();
+        
+        if (!response.success) {
+            alert('Lỗi: ' + response.message);
+            return;
+        }
+        
+        const p = response.data;
+        
+        // Điền dữ liệu vào form chỉnh sửa
         $('#edit_Id').val(p.id);
+        $('#edit_Code').val(p.code);
         $('#edit_Name').val(p.name);
-        $('#edit_Address').val(p.address);
+        $('#edit_CCCD').val(p.cccd);
         $('#edit_PhoneNumber').val(p.phone);
-        $('#edit_Gender').val(p.gender);
+        $('#edit_Dob').val(p.dob ? p.dob.split('T')[0] : ''); // Format date for input type="date"
+        
+        // Map giới tính từ backend sang giá trị select box
+        let genderValue = '';
+        if (p.gender === 'Male' || p.gender === 0) {
+            genderValue = '0';
+        } else if (p.gender === 'Female' || p.gender === 1) {
+            genderValue = '1';
+        }
+        $('#edit_Gender').val(genderValue);
+        // Lưu giới tính gốc để sử dụng khi không chọn giới tính
+        $('#edit_Gender').data('original-gender', p.gender);
+        $('#edit_Address').val(p.address);
         $('#edit_BloodGroup').val(p.bloodType);
+        $('#edit_InsuranceNumber').val(p.insuranceNumber);
+        $('#edit_Allergies').val(p.allergies);
         $('#edit_Status').val(p.status);
+        
+        // Hiển thị ảnh hiện tại nếu có - sử dụng hàm helper tối ưu
+        const currentImage = $('#edit_CurrentImage');
+        loadImageOptimized(currentImage, p.imageURL);
+        currentImage.show();
+        
         // Offcanvas sẽ tự mở do có data-bs-toggle, không cần gọi show() bằng js
     } catch (e) {
         alert('Có lỗi khi lấy dữ liệu: ' + e);
     }
 });
 
+// Xử lý nút View (xem chi tiết bệnh nhân)
+$('#patientTableBody').on('click', '.view-btn', async function(e) {
+    e.preventDefault();
+    const patientId = $(this).data('id');
+    try {
+        const res = await fetch(`https://localhost:7097/api/Patient/detail/${patientId}`);
+        if (!res.ok) { 
+            alert('Không tìm thấy bệnh nhân!'); 
+            return; 
+        }
+        const response = await res.json();
+        
+        if (!response.success) {
+            alert('Lỗi: ' + response.message);
+            return;
+        }
+        
+        const patient = response.data;
+        
+        // Hiển thị thông tin chi tiết trong modal
+        let detailsHtml = `
+            <div class="row">
+                <div class="col-md-3 text-center mb-3">
+                    <div class="patient-image-container">
+                        <img id="patientDetailImage" src="assets/images/user/default-avatar.png" 
+                             alt="Ảnh bệnh nhân" 
+                             class="img-fluid rounded-circle patient-detail-image"
+                             style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #e9ecef;">
+                        <div class="mt-2">
+                            <small class="text-muted">Ảnh đại diện</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Thông tin cơ bản</h6>
+                            <p><strong>Mã BN:</strong> ${patient.code || 'N/A'}</p>
+                            <p><strong>Tên bệnh nhân:</strong> ${patient.name || 'N/A'}</p>
+                            <p><strong>CCCD:</strong> ${patient.cccd || 'N/A'}</p>
+                            <p><strong>Số điện thoại:</strong> ${patient.phone || 'N/A'}</p>
+                            <p><strong>Ngày sinh:</strong> ${patient.dob ? new Date(patient.dob).toLocaleDateString('vi-VN') : 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Thông tin khác</h6>
+                            <p><strong>Giới tính:</strong> ${patient.gender === 'Male' ? 'Nam' : patient.gender === 'Female' ? 'Nữ' : patient.gender === 0 ? 'Nam' : patient.gender === 1 ? 'Nữ' : 'N/A'}</p>
+                            <p><strong>Địa chỉ:</strong> ${patient.address || 'N/A'}</p>
+                            <p><strong>Nhóm máu:</strong> ${patient.bloodType || 'N/A'}</p>
+                            <p><strong>Số bảo hiểm:</strong> ${patient.insuranceNumber || 'N/A'}</p>
+                            <p><strong>Dị ứng:</strong> ${patient.allergies || 'N/A'}</p>
+                            <p><strong>Trạng thái:</strong> ${patient.status || 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Hiển thị modal với thông tin chi tiết
+        const modal = new bootstrap.Modal(document.getElementById('patientDetailsModal'));
+        document.getElementById('patientDetailsContent').innerHTML = detailsHtml;
+        modal.show();
+        
+        // Load ảnh sau khi modal được hiển thị
+        setTimeout(() => {
+            const detailImage = document.getElementById('patientDetailImage');
+            if (detailImage) {
+                loadImageOptimized($(detailImage), patient.imageURL);
+            }
+        }, 100);
+        
+    } catch (e) {
+        alert('Có lỗi khi lấy thông tin bệnh nhân: ' + e);
+    }
+});
+
 // Cập nhật thông tin bệnh nhân
 $('#updatePatientBtn').on('click', async function() {
+    // Validate required fields first
+    const fullName = $('#edit_Name').val();
+    const cccd = $('#edit_CCCD').val();
+    const phone = $('#edit_PhoneNumber').val();
+    const dob = $('#edit_Dob').val();
+    const gender = $('#edit_Gender').val();
+    const address = $('#edit_Address').val();
+    
+    if (!fullName.trim()) {
+        alert('Vui lòng nhập tên bệnh nhân!');
+        return;
+    }
+    if (!cccd.trim() || cccd.length !== 12) {
+        alert('Vui lòng nhập đúng 12 số CCCD!');
+        return;
+    }
+    if (!phone.trim()) {
+        alert('Vui lòng nhập số điện thoại!');
+        return;
+    }
+    if (!dob) {
+        alert('Vui lòng chọn ngày sinh!');
+        return;
+    }
+    // Nếu không chọn giới tính, gửi -1 để backend biết giữ nguyên gender hiện tại
+    let genderValue = gender;
+    if (gender === '') {
+        genderValue = -1;
+    }
+    if (!address.trim()) {
+        alert('Vui lòng nhập địa chỉ!');
+        return;
+    }
+
+    // Validate image file if selected
+    const imageFile = $('#edit_ImageFile')[0].files[0];
+    if (imageFile) {
+        // Check file size (max 5MB)
+        if (imageFile.size > 5 * 1024 * 1024) {
+            alert('Kích thước file ảnh không được vượt quá 5MB!');
+            return;
+        }
+        // Check file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(imageFile.type)) {
+            alert('Chỉ chấp nhận file ảnh định dạng JPG, PNG, GIF!');
+            return;
+        }
+    }
+
     const updatedPatient = {
         id: $('#edit_Id').val(),
-        name: $('#edit_Name').val(),
-        address: $('#edit_Address').val(),
-        phone: $('#edit_PhoneNumber').val(),
-        gender: $('#edit_Gender').val(),
-        bloodType: $('#edit_BloodGroup').val(),
-        status: $('#edit_Status').val()
+        code: $('#edit_Code').val(),
+        name: fullName,
+        cccd: cccd,
+        phone: phone,
+        dob: dob,
+        gender: parseInt(genderValue),
+        address: address,
+        bloodType: $('#edit_BloodGroup').val() || '',
+        insuranceNumber: $('#edit_InsuranceNumber').val() || '',
+        allergies: $('#edit_Allergies').val() || '',
+        status: $('#edit_Status').val() || 'Active'
     };
+    
     try {
-        const res = await fetch(`https://localhost:7097/api/Patient/update/${updatedPatient.id}`, {
+        // Cập nhật thông tin bệnh nhân
+        const res = await fetch(`https://localhost:7097/api/Patient/edit/${updatedPatient.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedPatient)
         });
+        
         if (res.ok) {
-            alert('Patient updated successfully!');
-            loadPatients();
-            const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPatientEdit'));
-            offcanvas && offcanvas.hide();
+            const result = await res.json();
+            if (result.success) {
+                // Nếu có ảnh được chọn, upload ảnh
+                if (imageFile) {
+                    const formData = new FormData();
+                    formData.append('imageFile', imageFile);
+                    
+                    const imageRes = await fetch(`https://localhost:7097/api/Patient/update-image/${updatedPatient.id}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+                    
+                    if (imageRes.ok) {
+                        const imageResult = await imageRes.json();
+                        if (imageResult.success) {
+                            alert('Cập nhật bệnh nhân và ảnh thành công!');
+                        } else {
+                            alert('Cập nhật thông tin thành công nhưng lỗi khi cập nhật ảnh: ' + imageResult.message);
+                        }
+                    } else {
+                        alert('Cập nhật thông tin thành công nhưng lỗi khi cập nhật ảnh!');
+                    }
+                } else {
+                    alert('Cập nhật bệnh nhân thành công!');
+                }
+                
+                // Cập nhật UI mà không cần reload toàn bộ bảng
+                updatePatientInTable(updatedPatient.id, updatedPatient);
+                
+                const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPatientEdit'));
+                offcanvas && offcanvas.hide();
+            } else {
+                alert('Lỗi khi cập nhật bệnh nhân: ' + result.message);
+            }
         } else {
-            alert('Error updating patient.');
+            const errorData = await res.json();
+            if (errorData.errors && errorData.errors.length > 0) {
+                alert('Lỗi validation: ' + errorData.errors.join(', '));
+            } else {
+                alert('Lỗi khi cập nhật bệnh nhân: ' + (errorData.message || 'Không xác định'));
+            }
         }
     } catch (e) {
         alert('Có lỗi khi cập nhật: ' + e);
@@ -2082,10 +2793,10 @@ $('#patientTableBody').on('click', '.delete-btn', async function(e) {
     try {
         const res = await fetch(`https://localhost:7097/api/Patient/delete-patient/${patientId}`, { method: 'DELETE' });
         if (res.ok) {
-            alert('Xóa thành công!');
+            alert('Xóa bệnh nhân thành công!');
             loadPatients();
         } else {
-            alert('Không xóa được bệnh nhân.');
+            alert('Không thể xóa bệnh nhân.');
         }
     } catch (e) {
         alert('Có lỗi khi xóa: ' + e);
@@ -2094,6 +2805,140 @@ $('#patientTableBody').on('click', '.delete-btn', async function(e) {
 
 // Khi trang load thì lấy danh sách luôn
 $(function() { loadPatients(); });
+
+        // Thêm bệnh nhân mới
+        $('#savePatientBtn').on('click', async function() {
+            // Validate required fields first
+            const fullName = $('#add_Name').val();
+            const cccd = $('#add_CCCD').val();
+            const phone = $('#add_PhoneNumber').val();
+            const dob = $('#add_Dob').val();
+            const gender = $('#add_Gender').val();
+            const address = $('#add_Address').val();
+            
+            if (!fullName.trim()) {
+                alert('Vui lòng nhập tên bệnh nhân!');
+                return;
+            }
+
+            if (!cccd.trim() || cccd.length !== 12) {
+                alert('Vui lòng nhập đúng 12 số CCCD!');
+                return;
+            }
+            if (!phone.trim()) {
+                alert('Vui lòng nhập số điện thoại!');
+                return;
+            }
+            if (!dob) {
+                alert('Vui lòng chọn ngày sinh!');
+                return;
+            }
+            if (gender === '') {
+                alert('Vui lòng chọn giới tính!');
+                return;
+            }
+            if (!address.trim()) {
+                alert('Vui lòng nhập địa chỉ!');
+                return;
+            }
+
+            // Validate image file if selected
+            const imageFile = $('#add_ImageFile')[0].files[0];
+            if (imageFile) {
+                // Check file size (max 5MB)
+                if (imageFile.size > 5 * 1024 * 1024) {
+                    alert('Kích thước file ảnh không được vượt quá 5MB!');
+                    return;
+                }
+                // Check file type
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(imageFile.type)) {
+                    alert('Chỉ chấp nhận file ảnh định dạng JPG, PNG, GIF!');
+                    return;
+                }
+            }
+
+            // Create FormData for file upload
+            const formData = new FormData();
+            formData.append('fullName', fullName);
+            formData.append('cccd', cccd);
+            formData.append('phone', phone);
+            formData.append('dob', dob);
+            formData.append('gender', parseInt(gender));
+            formData.append('address', address);
+            formData.append('bloodType', $('#add_BloodGroup').val() || '');
+            formData.append('insuranceNumber', $('#add_InsuranceNumber').val() || '');
+            formData.append('allergies', $('#add_Allergies').val() || '');
+            
+            // Add image file if selected
+            if (imageFile) {
+                formData.append('imageFile', imageFile);
+            }
+
+            try {
+                const res = await fetch('https://localhost:7097/api/Patient/add-with-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const responseData = await res.json();
+                
+                if (res.ok && responseData.success) {
+                    alert('Thêm bệnh nhân thành công!');
+                    // Clear form
+                    $('#addPatientForm')[0].reset();
+                    // Reload patient list
+                    loadPatients();
+                    // Close modal
+                    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('offcanvasPatientAdd'));
+                    offcanvas && offcanvas.hide();
+                } else {
+                    alert('Lỗi khi thêm bệnh nhân: ' + (responseData.message || 'Không xác định'));
+                }
+            } catch (e) {
+                alert('Có lỗi khi thêm bệnh nhân: ' + e);
+            }
+        });
+
+// Clear form when modal is closed
+$('#offcanvasPatientAdd').on('hidden.bs.offcanvas', function() {
+    $('#addPatientForm')[0].reset();
+});
+
+// Clear edit form when modal is closed
+$('#offcanvasPatientEdit').on('hidden.bs.offcanvas', function() {
+    $('#editPatientForm')[0].reset();
+    const currentImage = $('#edit_CurrentImage');
+    currentImage.hide();
+    currentImage.attr('src', '');
+    
+    // Clear timeout để tránh load ảnh sau khi modal đã đóng
+    if (loadImageTimeout) {
+        clearTimeout(loadImageTimeout);
+        loadImageTimeout = null;
+    }
+});
+
+// Items per page selector
+$('#items-per-page').on('change', function() {
+    itemsPerPage = parseInt(this.value);
+    currentPage = 1; // Reset to first page when changing items per page
+    renderTable();
+    renderPagination();
+});
+
+// Initialize items per page selector
+$(document).ready(function() {
+    $('#items-per-page').val(itemsPerPage);
+});
+
+// Clear timeout khi modal view đóng
+$('#patientDetailsModal').on('hidden.bs.modal', function() {
+    if (loadImageTimeout) {
+        clearTimeout(loadImageTimeout);
+        loadImageTimeout = null;
+    }
+});
 
 </script>
 

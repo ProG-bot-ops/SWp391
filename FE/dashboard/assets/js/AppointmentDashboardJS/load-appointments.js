@@ -119,7 +119,7 @@
             return `<span class="${className}">${text}</span>`;
         },
 
-        // Tạo nút hành động
+        // Tạo nút thao tác
                     createActionButtons: function(appointmentId, status, appointment) {
             let buttons = '';
             
@@ -1355,7 +1355,7 @@
         }).format(amount);
     }
 
-    // Global functions cho các nút hành động
+    // Global functions cho các nút thao tác
     window.viewAppointmentDetail = function(appointmentId) {
         console.log('🔍 Viewing appointment detail:', appointmentId);
         

@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <th scope="col" style="text-align: left !important; padding: 12px 8px !important;">Ngày</th>
                             <th scope="col" class="text-center" style="text-align: center !important; text-align-last: center !important; -webkit-text-align-last: center !important; padding: 12px 8px !important; width: 80px !important;">Ca</th>
                             <th scope="col" class="text-center" style="text-align: center !important; text-align-last: center !important; -webkit-text-align-last: center !important; padding: 12px 8px !important; width: 120px !important;">Trạng Thái</th>
-                            <th scope="col" style="text-align: center !important; padding: 12px 8px !important;">Hành Động</th>
+                            <th scope="col" style="text-align: center !important; padding: 12px 8px !important;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
