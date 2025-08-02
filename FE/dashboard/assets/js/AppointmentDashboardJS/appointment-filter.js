@@ -137,14 +137,22 @@
                 return;
             }
 
+            // Helper function to format date as YYYY-MM-DD without timezone conversion
+            const formatDateToYYYYMMDD = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
             const appointments = window.appState.appointments;
             let filteredCount = 0;
-            const today = new Date().toISOString().split('T')[0];
+            const today = formatDateToYYYYMMDD(new Date());
 
             switch (this.currentFilter) {
                 case FILTER_OPTIONS.TODAY:
                     filteredCount = appointments.filter(apt => {
-                        const aptDate = new Date(apt.date).toISOString().split('T')[0];
+                        const aptDate = formatDateToYYYYMMDD(new Date(apt.date));
                         return aptDate === today;
                     }).length;
                     break;

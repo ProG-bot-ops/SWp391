@@ -5,6 +5,14 @@ class AppointmentAPIService {
         this.token = this.getToken();
     }
 
+    // Helper function to format date as YYYY-MM-DD without timezone conversion
+    formatDateToYYYYMMDD(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     // Get JWT token from localStorage
     getToken() {
         return localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -65,8 +73,9 @@ class AppointmentAPIService {
 
     // Get week calendar appointments (no authentication required)
     async getWeekCalendarAppointments(userId, startDate, endDate) {
-        const startDateStr = startDate.toISOString().split('T')[0];
-        const endDateStr = endDate.toISOString().split('T')[0];
+        // Format dates without timezone conversion
+        const startDateStr = this.formatDateToYYYYMMDD(startDate);
+        const endDateStr = this.formatDateToYYYYMMDD(endDate);
         
         try {
             const response = await fetch(
@@ -93,8 +102,9 @@ class AppointmentAPIService {
 
     // Get week statistics (no authentication required)
     async getWeekStatistics(userId, startDate, endDate) {
-        const startDateStr = startDate.toISOString().split('T')[0];
-        const endDateStr = endDate.toISOString().split('T')[0];
+        // Format dates without timezone conversion
+        const startDateStr = this.formatDateToYYYYMMDD(startDate);
+        const endDateStr = this.formatDateToYYYYMMDD(endDate);
         
         try {
             const response = await fetch(
@@ -137,7 +147,7 @@ class AppointmentAPIService {
 
     // Get available shifts for a doctor on a specific date
     async getAvailableShifts(doctorId, date) {
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = this.formatDateToYYYYMMDD(date);
         return await this.apiCall(`${this.baseURL}/appointment/available-shifts?doctorId=${doctorId}&date=${dateStr}`);
     }
 

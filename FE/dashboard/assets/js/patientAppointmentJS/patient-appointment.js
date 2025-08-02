@@ -11,6 +11,49 @@ class WeekCalendarManager {
         this.init();
     }
 
+    // Helper function to format date as YYYY-MM-DD without timezone conversion
+    formatDateToYYYYMMDD(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Helper function to parse date string to local date
+    parseDateString(dateString) {
+        if (!dateString) return null;
+        
+        // Handle dd/MM/yyyy format
+        if (dateString.includes('/')) {
+            const parts = dateString.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                const year = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            }
+        }
+        
+        // Handle yyyy-MM-dd format
+        if (dateString.includes('-')) {
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                const day = parseInt(parts[2], 10);
+                return new Date(year, month, day);
+            }
+        }
+        
+        // Try parsing as Date object
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            return date;
+        }
+        
+        return null;
+    }
+
     async init() {
         console.log('🚀 init() started');
         
@@ -162,12 +205,12 @@ class WeekCalendarManager {
         
         // Get week dates
         const dates = this.getWeekDates();
-        console.log('📅 renderCalendar - dates:', dates.map(d => d.toISOString().split('T')[0]));
+        console.log('📅 renderCalendar - dates:', dates.map(d => this.formatDateToYYYYMMDD(d)));
         
         // Create columns for each date
         dates.forEach((date, index) => {
             try {
-                const dateStr = date.toISOString().split('T')[0];
+                const dateStr = this.formatDateToYYYYMMDD(date);
                 
                 // Create column container
                 const column = document.createElement('div');
@@ -242,7 +285,7 @@ class WeekCalendarManager {
             const startDate = dates[0];
             const endDate = dates[6];
             
-            console.log('🔄 Loading appointments for week:', startDate.toISOString().split('T')[0], 'to', endDate.toISOString().split('T')[0]);
+            console.log('🔄 Loading appointments for week:', this.formatDateToYYYYMMDD(startDate), 'to', this.formatDateToYYYYMMDD(endDate));
             
             const response = await this.apiService.getWeekCalendarAppointments(
                 this.currentUser.id,
@@ -312,7 +355,7 @@ class WeekCalendarManager {
         console.log('📅 Calendar elements found:', calendarElements.length);
         
         dates.forEach(date => {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = this.formatDateToYYYYMMDD(date);
             console.log(`🔍 Looking for element with data-date="${dateStr}"`);
             const content = document.querySelector(`[data-date="${dateStr}"]`);
             
@@ -324,46 +367,13 @@ class WeekCalendarManager {
                 const dayAppointments = this.appointments.filter(apt => {
                     if (!apt.appointmentDate) return false;
                     
-                    // Convert to string if it's a Date object
-                    const dateValue = apt.appointmentDate instanceof Date ? apt.appointmentDate.toISOString().split('T')[0] : apt.appointmentDate;
+                    // Parse appointment date to local date
+                    const aptDate = this.parseDateString(apt.appointmentDate);
+                    if (!aptDate) return false;
                     
-                    if (typeof dateValue === 'string') {
-                        let aptDateStr = '';
-                        
-                        if (dateValue.includes('/')) {
-                            // Format: dd/MM/yyyy
-                            const aptDateParts = dateValue.split('/');
-                            if (aptDateParts.length === 3) {
-                                aptDateStr = `${aptDateParts[2]}-${aptDateParts[1].padStart(2, '0')}-${aptDateParts[0].padStart(2, '0')}`;
-                            }
-                        } else if (dateValue.includes('-')) {
-                            // Format: yyyy-MM-dd or dd-MM-yyyy
-                            const aptDateParts = dateValue.split('-');
-                            if (aptDateParts.length === 3) {
-                                if (aptDateParts[0].length === 4) {
-                                    // Format: yyyy-MM-dd
-                                    aptDateStr = dateValue;
-                                } else {
-                                    // Format: dd-MM-yyyy
-                                    aptDateStr = `${aptDateParts[2]}-${aptDateParts[1].padStart(2, '0')}-${aptDateParts[0].padStart(2, '0')}`;
-                                }
-                            }
-                        } else {
-                            // Try to parse as Date object
-                            try {
-                                const aptDate = new Date(dateValue);
-                                if (!isNaN(aptDate.getTime())) {
-                                    aptDateStr = aptDate.toISOString().split('T')[0];
-                                }
-                            } catch (e) {
-                                return false;
-                            }
-                        }
-                        
-                        return aptDateStr === dateStr;
-                    }
-                    
-                    return false;
+                    // Compare dates using local formatting
+                    const aptDateStr = this.formatDateToYYYYMMDD(aptDate);
+                    return aptDateStr === dateStr;
                 });
                 
                 if (dayAppointments.length === 0) {
@@ -451,10 +461,10 @@ class WeekCalendarManager {
         }
 
         const dates = this.getWeekDates();
-        console.log('🔍 renderDayStats - dates:', dates.map(d => d.toISOString().split('T')[0]));
+        console.log('🔍 renderDayStats - dates:', dates.map(d => this.formatDateToYYYYMMDD(d)));
         
         dates.forEach((date, index) => {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = this.formatDateToYYYYMMDD(date);
             console.log(`🔍 Tìm kiếm element với data-date="${dateStr}"`);
             
             const dateElement = document.querySelector(`[data-date="${dateStr}"]`);
@@ -604,7 +614,7 @@ class WeekCalendarManager {
         console.log('Current user:', this.currentUser);
         console.log('Appointments count:', this.appointments.length);
         console.log('Appointments data:', this.appointments);
-        console.log('Week dates:', this.getWeekDates().map(d => d.toISOString().split('T')[0]));
+        console.log('Week dates:', this.getWeekDates().map(d => this.formatDateToYYYYMMDD(d)));
         console.log('Calendar elements:', document.querySelectorAll('[data-date]').length);
         
         // Check each appointment date format
@@ -725,7 +735,7 @@ class WeekCalendarManager {
         
         // Log current week dates
         const dates = this.getWeekDates();
-        console.log('📅 Current week dates:', dates.map(d => d.toISOString().split('T')[0]));
+        console.log('📅 Current week dates:', dates.map(d => this.formatDateToYYYYMMDD(d)));
         
         // Log all appointments with their dates
         this.appointments.forEach((apt, index) => {
@@ -1008,10 +1018,10 @@ class WeekCalendarManager {
         grid.innerHTML = '';
         
         const dates = this.getWeekDates();
-        console.log('📅 Creating columns for dates:', dates.map(d => d.toISOString().split('T')[0]));
+        console.log('📅 Creating columns for dates:', dates.map(d => this.formatDateToYYYYMMDD(d)));
         
         dates.forEach((date, index) => {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = this.formatDateToYYYYMMDD(date);
             
             const column = document.createElement('div');
             column.className = 'calendar-column';
@@ -1099,36 +1109,16 @@ class WeekCalendarManager {
         
         // Get current week dates
         const dates = this.getWeekDates();
-        console.log('📅 Week dates:', dates.map(d => d.toISOString().split('T')[0]));
+        console.log('📅 Week dates:', dates.map(d => this.formatDateToYYYYMMDD(d)));
         
         // Test date matching for each day
         dates.forEach((date, dayIndex) => {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = this.formatDateToYYYYMMDD(date);
             console.log(`\n🔍 Testing day ${dayIndex + 1} (${dateStr}):`);
             
-            // Parse appointment date
-            let aptDateStr = '';
-            const dateValue = appointment.appointmentDate instanceof Date ? 
-                appointment.appointmentDate.toISOString().split('T')[0] : 
-                appointment.appointmentDate;
-            
-            if (typeof dateValue === 'string') {
-                if (dateValue.includes('/')) {
-                    const parts = dateValue.split('/');
-                    if (parts.length === 3) {
-                        aptDateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                    }
-                } else if (dateValue.includes('-')) {
-                    const parts = dateValue.split('-');
-                    if (parts.length === 3) {
-                        if (parts[0].length === 4) {
-                            aptDateStr = dateValue;
-                        } else {
-                            aptDateStr = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                        }
-                    }
-                }
-            }
+            // Parse appointment date using the helper function
+            const aptDate = this.parseDateString(appointment.appointmentDate);
+            const aptDateStr = aptDate ? this.formatDateToYYYYMMDD(aptDate) : '';
             
             console.log(`   Appointment date: ${aptDateStr}`);
             console.log(`   Calendar date: ${dateStr}`);
